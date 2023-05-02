@@ -1467,8 +1467,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a515f5799fe4961cb532f983ce2b23082366b898e52ffbce459c86f67c8378a"
 
 [[package]]
-name = "ytop"
-version = "0.6.2"
+name = "yvers"
+version = "0.0.1"
 dependencies = [
  "battery",
  "better-panic",
