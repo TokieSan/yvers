@@ -28,9 +28,6 @@ pub fn num_active_widgets(widgets: &mut Widgets) -> usize {
     if widgets.net.is_some() {
         count += 1;
     }
-    if widgets.temp.is_some() {
-        count += 1;
-    }
     count 
 }
 
@@ -81,11 +78,6 @@ pub fn draw_widgets<B: Backend>(frame: &mut Frame<B>, widgets: &mut Widgets, are
         row_idx += 1;
     }
 
-    if let Some(temp) = widgets.temp.as_ref() {
-        frame.render_widget(temp, chunks[row_idx]);
-        row_idx += 1;
-    }
-    
     if let Some(net) = widgets.net.as_ref() {
         frame.render_widget(net, chunks[row_idx]);
         row_idx += 1;

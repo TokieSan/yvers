@@ -15,7 +15,6 @@ pub struct Widgets<'a, 'b> {
 	pub mem: Option<MemWidget<'a>>,
 	pub net: Option<NetWidget<'a, 'b>>,
 	pub proc: Option<ProcWidget<'a>>,
-	pub temp: Option<TempWidget<'a>>,
 }
 
 pub fn setup_app<'a, 'b>(
@@ -61,12 +60,6 @@ pub fn setup_app<'a, 'b>(
         None
     };
 
-    let temp =  if args.temp || args.everything {
-        Some(TempWidget::new(colorscheme, args.fahrenheit))
-    } else {
-        None
-    };
-
 	let statusbar = if args.statusbar || args.everything {
 		Some(Statusbar::new(colorscheme, program_name))
 	} else {
@@ -83,7 +76,6 @@ pub fn setup_app<'a, 'b>(
 			mem,
 			net,
 			proc,
-			temp,
 		},
 	}
 }

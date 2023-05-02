@@ -28,9 +28,6 @@ pub struct Args {
 	#[structopt(short = "P", long = "no-proc")]
 	pub proc: bool,
 
-	#[structopt(short = "T", long = "temp")]
-	pub temp: bool,
-
 	#[structopt(short = "E", long = "everything")]
 	pub everything: bool,
 
@@ -49,9 +46,6 @@ pub struct Args {
 	)]
 	pub colorscheme: Colorschemes,
 
-	/// Show temperatures in fahrenheit.
-	#[structopt(short = "f", long = "fahrenheit")]
-	pub fahrenheit: bool,
 
 	/// The name of the network interface to show in the Net widget. 'all' shows all interfaces.
 	#[structopt(short = "i", long = "interface", default_value = "all")]
