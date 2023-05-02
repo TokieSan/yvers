@@ -9,13 +9,15 @@ pub trait UpdatableWidget {
 
 pub fn update_widgets(widgets: &mut Widgets, seconds: Ratio<u64>) {
 	let mut widgets_to_update: Vec<&mut (dyn UpdatableWidget)> =
-		vec![&mut widgets.cpu, &mut widgets.mem, &mut widgets.proc];
+		vec![&mut widgets.mem, &mut widgets.proc];
 
-	if let (Some(disk), Some(net), Some(temp)) = (
+	if let (Some(disk), Some(net), Some(temp), Some(cpu)) = (
 		widgets.disk.as_mut(),
 		widgets.net.as_mut(),
 		widgets.temp.as_mut(),
+		widgets.cpu.as_mut(),
 	) {
+		widgets_to_update.push(cpu);
 		widgets_to_update.push(disk);
 		widgets_to_update.push(net);
 		widgets_to_update.push(temp);

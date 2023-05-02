@@ -9,8 +9,11 @@ use crate::app::{App, Widgets};
 // so a smarter vector of pointers thing can be used instead
 
 pub fn num_active_widgets(widgets: &mut Widgets) -> usize {
-    let mut count = 3;
+    let mut count = 2;
     if widgets.battery.is_some() {
+        count += 1;
+    }
+    if widgets.cpu.is_some() {
         count += 1;
     }
     if widgets.disk.is_some() {
@@ -62,8 +65,10 @@ pub fn draw_widgets<B: Backend>(frame: &mut Frame<B>, widgets: &mut Widgets, are
         row_idx += 1;
     }
 
-    frame.render_widget(&widgets.cpu, chunks[row_idx]);
-    row_idx += 1;
+    if let Some(cpu) = widgets.cpu.as_ref() {
+        frame.render_widget(cpu, chunks[row_idx]);
+        row_idx += 1;
+    }
 
     frame.render_widget(&widgets.mem, chunks[row_idx]);
     row_idx += 1; 

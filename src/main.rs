@@ -231,12 +231,16 @@ fn main() {
 									}
 								},
 								KeyCode::Char('h') => {
-									app.widgets.cpu.scale_in();
+                                    if let Some(cpu) = app.widgets.cpu.as_mut() {
+                                        cpu.scale_in();
+                                    }
 									app.widgets.mem.scale_in();
 									graphs_modified = true;
 								},
 								KeyCode::Char('l') => {
-									app.widgets.cpu.scale_out();
+                                    if let Some(cpu) = app.widgets.cpu.as_mut() {
+                                        cpu.scale_out();
+                                    }
 									app.widgets.mem.scale_out();
 									graphs_modified = true;
 								},
