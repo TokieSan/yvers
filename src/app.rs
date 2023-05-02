@@ -11,7 +11,6 @@ pub struct App<'a, 'b> {
 pub struct Widgets<'a, 'b> {
 	pub battery: Option<BatteryWidget<'a>>,
 	pub cpu: Option<CpuWidget<'a>>,
-	pub disk: Option<DiskWidget<'a>>,
 	pub mem: Option<MemWidget<'a>>,
 	pub net: Option<NetWidget<'a, 'b>>,
 	pub proc: Option<ProcWidget<'a>>,
@@ -35,12 +34,6 @@ pub fn setup_app<'a, 'b>(
     } else {
         None
     };  
-
-    let disk = if args.disk || args.everything {
-        Some(DiskWidget::new(colorscheme))
-    } else {
-        None
-    };
 
     let mem = if args.mem || args.everything {
         Some(MemWidget::new(colorscheme, args.interval)) 
@@ -72,7 +65,6 @@ pub fn setup_app<'a, 'b>(
 		widgets: Widgets {
 			battery,
 			cpu,
-			disk,
 			mem,
 			net,
 			proc,

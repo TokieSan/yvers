@@ -11,10 +11,6 @@ pub fn update_widgets(widgets: &mut Widgets, seconds: Ratio<u64>) {
     let mut widgets_to_update: Vec<&mut (dyn UpdatableWidget)> =
         vec![];
 
-    if let Some(disk) = widgets.disk.as_mut() {
-        widgets_to_update.push(disk); 
-    }
-
     if let Some(net) = widgets.net.as_mut() {
         widgets_to_update.push(net);
     }
