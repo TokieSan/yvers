@@ -8,8 +8,8 @@ pub trait UpdatableWidget {
 }
 
 pub fn update_widgets(widgets: &mut Widgets, seconds: Ratio<u64>) {
-	let mut widgets_to_update: Vec<&mut (dyn UpdatableWidget)> =
-		vec![];
+    let mut widgets_to_update: Vec<&mut (dyn UpdatableWidget)> =
+        vec![];
 
     if let Some(disk) = widgets.disk.as_mut() {
         widgets_to_update.push(disk); 
@@ -35,13 +35,13 @@ pub fn update_widgets(widgets: &mut Widgets, seconds: Ratio<u64>) {
         widgets_to_update.push(proc);
     }
 
-	if let Some(battery) = widgets.battery.as_mut() {
-		widgets_to_update.push(battery);
-	}
+    if let Some(battery) = widgets.battery.as_mut() {
+        widgets_to_update.push(battery);
+    }
 
-	for widget in widgets_to_update {
-		if seconds % widget.get_update_interval() == Ratio::from_integer(0) {
-			widget.update();
-		}
-	}
+    for widget in widgets_to_update {
+        if seconds % widget.get_update_interval() == Ratio::from_integer(0) {
+            widget.update();
+        }
+    }
 }
