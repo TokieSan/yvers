@@ -4,7 +4,7 @@ version = "0.0.1"
 authors = ["Ahmed Eltokhy <eltokhy@aucegypt.edu>"]
 license = "MIT"
 description = "An extensible system monitor written in Rust"
-edition = "2023"
+edition = "2021"
 
 [dependencies]
 battery = "0.7.5"
