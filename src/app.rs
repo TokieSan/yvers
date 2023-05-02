@@ -12,9 +12,9 @@ pub struct Widgets<'a, 'b> {
 	pub battery: Option<BatteryWidget<'a>>,
 	pub cpu: Option<CpuWidget<'a>>,
 	pub disk: Option<DiskWidget<'a>>,
-	pub mem: MemWidget<'a>,
+	pub mem: Option<MemWidget<'a>>,
 	pub net: Option<NetWidget<'a, 'b>>,
-	pub proc: ProcWidget<'a>,
+	pub proc: Option<ProcWidget<'a>>,
 	pub temp: Option<TempWidget<'a>>,
 }
 
@@ -23,12 +23,11 @@ pub fn setup_app<'a, 'b>(
 	colorscheme: &'a Colorscheme,
 	program_name: &str,
 ) -> App<'a, 'b> {
-	let proc = ProcWidget::new(colorscheme);
+	let proc = Some(ProcWidget::new(colorscheme));
 	let help_menu = HelpMenu::new(colorscheme);
-    let mem = MemWidget::new(colorscheme, args.interval);
 
-	let (battery, disk, net, temp, cpu) = if args.minimal {
-		(None, None, None, None, None)
+	let (battery, disk, net, temp, cpu, mem) = if args.minimal {
+		(None, None, None, None, None, None)
 	} else {
 		(
 			if args.battery {
@@ -40,6 +39,7 @@ pub fn setup_app<'a, 'b>(
 			Some(NetWidget::new(colorscheme, &args.interface)),
 			Some(TempWidget::new(colorscheme, args.fahrenheit)),
             Some(CpuWidget::new(colorscheme, args.interval, args.average_cpu, args.per_cpu)),
+            Some(MemWidget::new(colorscheme, args.interval)),
 		)
 	};
 

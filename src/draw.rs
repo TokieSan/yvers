@@ -9,11 +9,17 @@ use crate::app::{App, Widgets};
 // so a smarter vector of pointers thing can be used instead
 
 pub fn num_active_widgets(widgets: &mut Widgets) -> usize {
-    let mut count = 2;
+    let mut count = 0;
     if widgets.battery.is_some() {
         count += 1;
     }
+    if widgets.proc.is_some() {
+        count += 1;
+    }
     if widgets.cpu.is_some() {
+        count += 1;
+    }
+    if widgets.mem.is_some() {
         count += 1;
     }
     if widgets.disk.is_some() {
@@ -70,8 +76,10 @@ pub fn draw_widgets<B: Backend>(frame: &mut Frame<B>, widgets: &mut Widgets, are
         row_idx += 1;
     }
 
-    frame.render_widget(&widgets.mem, chunks[row_idx]);
-    row_idx += 1; 
+    if let Some(mem) = widgets.mem.as_ref() {
+        frame.render_widget(mem, chunks[row_idx]);
+        row_idx += 1;
+    }
 
     if let Some(temp) = widgets.temp.as_ref() {
         frame.render_widget(temp, chunks[row_idx]);
@@ -82,8 +90,10 @@ pub fn draw_widgets<B: Backend>(frame: &mut Frame<B>, widgets: &mut Widgets, are
         frame.render_widget(net, chunks[row_idx]);
         row_idx += 1;
     }
-        
-    frame.render_widget(&mut widgets.proc, chunks[row_idx]); 
+
+    if let Some(proc) = widgets.proc.as_mut() {
+        frame.render_widget(proc, chunks[row_idx]);
+    }
 }
 
 pub fn draw_help_menu<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) {

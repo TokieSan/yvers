@@ -202,31 +202,43 @@ fn main() {
 									paused = !paused;
 								},
 								KeyCode::Char('j') | KeyCode::Down => {
-									app.widgets.proc.scroll_down();
+                                    if let Some(proc) = app.widgets.proc.as_mut() {
+                                        proc.scroll_down();
+                                    }
 									proc_modified = true;
 								},
 								KeyCode::Char('k') | KeyCode::Up => {
-									app.widgets.proc.scroll_up();
+                                    if let Some(proc) = app.widgets.proc.as_mut() {
+                                        proc.scroll_up();
+                                    }
 									proc_modified = true;
 								},
 								KeyCode::Char('g') => {
 									if previous_key_event == Some(KeyEvent::from(KeyCode::Char('g'))) {
-										app.widgets.proc.scroll_top();
+                                        if let Some(proc) = app.widgets.proc.as_mut() {
+                                            proc.scroll_top();
+                                        }
 										proc_modified = true;
 										skip_key = true;
 									}
 								},
 								KeyCode::Home => {
-									app.widgets.proc.scroll_top();
+                                    if let Some(proc) = app.widgets.proc.as_mut() {
+                                        proc.scroll_top();
+                                    }
 									proc_modified = true;
 								},
 								KeyCode::Char('G') | KeyCode::End => {
-									app.widgets.proc.scroll_bottom();
+                                    if let Some(proc) = app.widgets.proc.as_mut() {
+                                        proc.scroll_bottom();
+                                    }
 									proc_modified = true;
 								},
 								KeyCode::Char('d') => {
 									if previous_key_event == Some(KeyEvent::from(KeyCode::Char('d'))) {
-										app.widgets.proc.kill_process();
+                                        if let Some(proc) = app.widgets.proc.as_mut() {
+                                            proc.kill_process();
+                                        }
 										skip_key = true;
 									}
 								},
@@ -234,14 +246,18 @@ fn main() {
                                     if let Some(cpu) = app.widgets.cpu.as_mut() {
                                         cpu.scale_in();
                                     }
-									app.widgets.mem.scale_in();
+                                    if let Some(mem) = app.widgets.mem.as_mut() {
+                                        mem.scale_in();
+                                    }
 									graphs_modified = true;
 								},
 								KeyCode::Char('l') => {
                                     if let Some(cpu) = app.widgets.cpu.as_mut() {
                                         cpu.scale_out();
                                     }
-									app.widgets.mem.scale_out();
+                                    if let Some(mem) = app.widgets.mem.as_mut() {
+                                        mem.scale_out();
+                                    }
 									graphs_modified = true;
 								},
 								KeyCode::Esc => {
@@ -251,23 +267,33 @@ fn main() {
 									}
 								}
 								KeyCode::Tab => {
-									app.widgets.proc.toggle_grouping();
+                                    if let Some(proc) = app.widgets.proc.as_mut() {
+                                        proc.toggle_grouping();
+                                    }
 									proc_modified = true;
 								},
 								KeyCode::Char('p') => {
-									app.widgets.proc.sort_by_num();
+                                    if let Some(proc) = app.widgets.proc.as_mut() {
+                                        proc.sort_by_num();
+                                    }
 									proc_modified = true;
 								},
 								KeyCode::Char('n') => {
-									app.widgets.proc.sort_by_command();
+                                    if let Some(proc) = app.widgets.proc.as_mut() {
+                                        proc.sort_by_command();
+                                    }
 									proc_modified = true;
 								},
 								KeyCode::Char('c') => {
-									app.widgets.proc.sort_by_cpu();
+                                    if let Some(proc) = app.widgets.proc.as_mut() {
+                                        proc.sort_by_cpu();
+                                    }
 									proc_modified = true;
 								},
 								KeyCode::Char('m') => {
-									app.widgets.proc.sort_by_mem();
+                                    if let Some(proc) = app.widgets.proc.as_mut() {
+                                        proc.sort_by_mem();
+                                    }
 									proc_modified = true;
 								},
 								_ => {}
@@ -278,19 +304,27 @@ fn main() {
 									break
 								},
 								KeyCode::Char('d') => {
-									app.widgets.proc.scroll_half_page_down();
+                                    if let Some(proc) = app.widgets.proc.as_mut() {
+                                        proc.scroll_half_page_down();
+                                    }
 									proc_modified = true;
 								},
-								KeyCode::Char('u') => {
-									app.widgets.proc.scroll_half_page_up();
+                                KeyCode::Char('u') => {
+                                    if let Some(proc) = app.widgets.proc.as_mut() {
+                                        proc.scroll_half_page_up();
+                                    }
 									proc_modified = true;
 								},
 								KeyCode::Char('f') => {
-									app.widgets.proc.scroll_full_page_down();
+                                    if let Some(proc) = app.widgets.proc.as_mut() {
+                                        proc.scroll_full_page_down();
+                                    }
 									proc_modified = true;
 								},
 								KeyCode::Char('b') => {
-									app.widgets.proc.scroll_full_page_up();
+                                    if let Some(proc) = app.widgets.proc.as_mut() {
+                                        proc.scroll_full_page_up();
+                                    }
 									proc_modified = true;
 								},
 								_ => {}
@@ -306,11 +340,15 @@ fn main() {
 					// TODO: figure out why these aren't working
 					Event::Mouse(mouse_event) => match mouse_event {
 						MouseEvent::ScrollUp(_, _, _) => {
-							app.widgets.proc.scroll_up();
+                            if let Some(proc) = app.widgets.proc.as_mut() {
+                                proc.scroll_up();
+                            }
 							proc_modified = true;
 						},
 						MouseEvent::ScrollDown(_, _, _) => {
-							app.widgets.proc.scroll_down();
+                            if let Some(proc) = app.widgets.proc.as_mut() {
+                                proc.scroll_down();
+                            }
 							proc_modified = true;
 						},
 						_ => {}
