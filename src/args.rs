@@ -16,9 +16,6 @@ pub struct Args {
 	#[structopt(short = "C", long = "cpu")]
 	pub cpu: bool,  
 
-	#[structopt(short = "M", long = "mem")]
-	pub mem: bool,
-
 	#[structopt(short = "N", long = "net")]
 	pub net: bool,   
 
