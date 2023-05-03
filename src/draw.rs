@@ -4,93 +4,72 @@ use tui::{Frame, Terminal};
 
 use crate::app::{App, Widgets};
 
+// Count number of widgets
+// In the future, some generic class "widget" needs to be created
+// so a smarter vector of pointers thing can be used instead
+
+pub fn num_active_widgets(widgets: &mut Widgets) -> usize {
+    let mut count = 0;
+    if widgets.battery.is_some() {
+        count += 1;
+    }
+    if widgets.proc.is_some() {
+        count += 1;
+    }
+    if widgets.cpu.is_some() {
+        count += 1;
+    }
+    if widgets.net.is_some() {
+        count += 1;
+    }
+    count 
+}
+
 pub fn draw<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) {
 	terminal
-		.draw(|mut frame| {
-			if let Some(statusbar) = app.statusbar.as_mut() {
-				let chunks = Layout::default()
-					.constraints([Constraint::Min(0), Constraint::Length(1)].as_ref())
-					.split(frame.size());
-				draw_widgets(&mut frame, &mut app.widgets, chunks[0]);
-				frame.render_widget(statusbar, chunks[1]);
-			} else {
-				let chunks = Layout::default()
-					.constraints(vec![Constraint::Percentage(100)])
-					.split(frame.size());
-				draw_widgets(&mut frame, &mut app.widgets, chunks[0]);
+        .draw(|mut frame| {
+            let num_widgets = num_active_widgets(&mut app.widgets);
+            let mut chunks = Layout::default()
+                .constraints(vec![Constraint::Percentage(100)])
+                .split(frame.size());
+            if let Some(statusbar) = app.statusbar.as_mut() {
+                chunks = Layout::default()
+                    .constraints([Constraint::Min(0), Constraint::Length(1)].as_ref())
+                    .split(frame.size());
+                frame.render_widget(statusbar, chunks[1]);
 			}
-		})
+            draw_widgets(&mut frame, &mut app.widgets, chunks[0], num_widgets);
+        })
 		.unwrap();
 }
 
-pub fn draw_widgets<B: Backend>(frame: &mut Frame<B>, widgets: &mut Widgets, area: Rect) {
-	if widgets.temp.is_some() {
-		let vertical_chunks = Layout::default()
-			.direction(Direction::Vertical)
-			.constraints(
-				[
-					Constraint::Ratio(1, 3),
-					Constraint::Ratio(1, 3),
-					Constraint::Ratio(1, 3),
-				]
-				.as_ref(),
-			)
-			.split(area);
-		draw_top_row(frame, widgets, vertical_chunks[0]);
-		draw_middle_row(frame, widgets, vertical_chunks[1]);
-		draw_bottom_row(frame, widgets, vertical_chunks[2]);
-	} else {
-		let vertical_chunks = Layout::default()
-			.direction(Direction::Vertical)
-			.constraints([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)].as_ref())
-			.split(area);
-		draw_top_row(frame, widgets, vertical_chunks[0]);
-		draw_bottom_row(frame, widgets, vertical_chunks[1]);
-	}
-}
+// TODO: Make this do it in the form of a grid with smarter layout
+pub fn draw_widgets<B: Backend>(frame: &mut Frame<B>, widgets: &mut Widgets, area: Rect, num_widgets: usize) {
+    let constraints = vec![Constraint::Ratio(1, num_widgets as u32); num_widgets];
+    let chunks = Layout::default()
+        .direction(Direction::Vertical) 
+        .constraints(&*constraints)
+        .split(area);
 
-pub fn draw_top_row<B: Backend>(frame: &mut Frame<B>, widgets: &mut Widgets, area: Rect) {
-	if let Some(battery) = widgets.battery.as_ref() {
-		let horizontal_chunks = Layout::default()
-			.direction(Direction::Horizontal)
-			.constraints([Constraint::Ratio(1, 3), Constraint::Ratio(2, 3)].as_ref())
-			.split(area);
-		frame.render_widget(battery, horizontal_chunks[0]);
-		frame.render_widget(&widgets.cpu, horizontal_chunks[1]);
-	} else {
-		let horizontal_chunks = Layout::default()
-			.direction(Direction::Horizontal)
-			.constraints([Constraint::Percentage(100)].as_ref())
-			.split(area);
-		frame.render_widget(&widgets.cpu, horizontal_chunks[0]);
-	}
-}
+    let mut row_idx = 0;
+    if let Some(battery) = widgets.battery.as_ref() {
+        frame.render_widget(battery, chunks[row_idx]);
+        row_idx += 1;
+    }
+    
+    if let Some(cpu) = widgets.cpu.as_ref() {
+        frame.render_widget(cpu, chunks[row_idx]);
+        row_idx += 1;
+    }
 
-pub fn draw_middle_row<B: Backend>(frame: &mut Frame<B>, widgets: &mut Widgets, area: Rect) {
-	let horizontal_chunks = Layout::default()
-		.direction(Direction::Horizontal)
-		.constraints([Constraint::Ratio(1, 3), Constraint::Ratio(2, 3)].as_ref())
-		.split(area);
-	frame.render_widget(&widgets.mem, horizontal_chunks[1]);
-	let vertical_chunks = Layout::default()
-		.direction(Direction::Vertical)
-		.constraints([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)].as_ref())
-		.split(horizontal_chunks[0]);
-	frame.render_widget(widgets.disk.as_ref().unwrap(), vertical_chunks[0]);
-	frame.render_widget(widgets.temp.as_ref().unwrap(), vertical_chunks[1]);
-}
+    if let Some(net) = widgets.net.as_ref() {
+        frame.render_widget(net, chunks[row_idx]);
+        row_idx += 1;
+    }
 
-pub fn draw_bottom_row<B: Backend>(frame: &mut Frame<B>, widgets: &mut Widgets, area: Rect) {
-	let horizontal_chunks = Layout::default()
-		.direction(Direction::Horizontal)
-		.constraints([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)].as_ref())
-		.split(area);
-	if let Some(net) = widgets.net.as_ref() {
-		frame.render_widget(net, horizontal_chunks[0]);
-	} else {
-		frame.render_widget(&widgets.mem, horizontal_chunks[0]);
-	}
-	frame.render_widget(&mut widgets.proc, horizontal_chunks[1]);
+    if let Some(proc) = widgets.proc.as_mut() {
+        frame.render_widget(proc, chunks[row_idx]);
+    }
 }
 
 pub fn draw_help_menu<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) {

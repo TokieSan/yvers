@@ -9,11 +9,23 @@ pub struct Args {
 	#[structopt(short = "a", long = "average-cpu")]
 	pub average_cpu: bool,
 
-	/// Show Battery widget (overridden by 'minimal' flag).
-	#[structopt(short = "b", long = "battery")]
-	pub battery: bool,
+	/// Show widgets or not
+    #[structopt(short = "B", long = "battery")]  
+	pub battery: bool,   
 
-	/// Set a colorscheme.
+	#[structopt(short = "C", long = "cpu")]
+	pub cpu: bool,  
+
+	#[structopt(short = "N", long = "net")]
+	pub net: bool,   
+
+	#[structopt(short = "P", long = "no-proc")]
+	pub proc: bool,
+
+	#[structopt(short = "E", long = "everything")]
+	pub everything: bool,
+
+    /// Set a colorscheme.
 	#[structopt(
 		short = "c",
 		long = "colorscheme",
@@ -28,9 +40,6 @@ pub struct Args {
 	)]
 	pub colorscheme: Colorschemes,
 
-	/// Show temperatures in fahrenheit.
-	#[structopt(short = "f", long = "fahrenheit")]
-	pub fahrenheit: bool,
 
 	/// The name of the network interface to show in the Net widget. 'all' shows all interfaces.
 	#[structopt(short = "i", long = "interface", default_value = "all")]

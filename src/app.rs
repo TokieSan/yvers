@@ -10,12 +10,9 @@ pub struct App<'a, 'b> {
 
 pub struct Widgets<'a, 'b> {
 	pub battery: Option<BatteryWidget<'a>>,
-	pub cpu: CpuWidget<'a>,
-	pub disk: Option<DiskWidget<'a>>,
-	pub mem: MemWidget<'a>,
+	pub cpu: Option<CpuWidget<'a>>,
 	pub net: Option<NetWidget<'a, 'b>>,
-	pub proc: ProcWidget<'a>,
-	pub temp: Option<TempWidget<'a>>,
+	pub proc: Option<ProcWidget<'a>>,
 }
 
 pub fn setup_app<'a, 'b>(
@@ -23,27 +20,33 @@ pub fn setup_app<'a, 'b>(
 	colorscheme: &'a Colorscheme,
 	program_name: &str,
 ) -> App<'a, 'b> {
-	let cpu = CpuWidget::new(colorscheme, args.interval, args.average_cpu, args.per_cpu);
-	let mem = MemWidget::new(colorscheme, args.interval);
-	let proc = ProcWidget::new(colorscheme);
 	let help_menu = HelpMenu::new(colorscheme);
 
-	let (battery, disk, net, temp) = if args.minimal {
-		(None, None, None, None)
-	} else {
-		(
-			if args.battery {
-				Some(BatteryWidget::new(colorscheme))
-			} else {
-				None
-			},
-			Some(DiskWidget::new(colorscheme)),
-			Some(NetWidget::new(colorscheme, &args.interface)),
-			Some(TempWidget::new(colorscheme, args.fahrenheit)),
-		)
-	};
+    let battery = if args.battery || args.everything {
+        Some(BatteryWidget::new(colorscheme)) 
+    } else {
+        None
+    };
 
-	let statusbar = if args.statusbar {
+    let cpu = if args.cpu || args.everything {
+        Some(CpuWidget::new(colorscheme, args.interval, args.average_cpu, args.per_cpu))
+    } else {
+        None
+    };  
+
+    let net = if args.net || args.everything {
+        Some(NetWidget::new(colorscheme, &args.interface))
+    } else {
+        None
+    };   
+
+    let proc = if !args.proc || args.everything {
+        Some(ProcWidget::new(colorscheme))
+    } else {
+        None
+    };
+
+	let statusbar = if args.statusbar || args.everything {
 		Some(Statusbar::new(colorscheme, program_name))
 	} else {
 		None
@@ -55,11 +58,8 @@ pub fn setup_app<'a, 'b>(
 		widgets: Widgets {
 			battery,
 			cpu,
-			disk,
-			mem,
 			net,
 			proc,
-			temp,
 		},
 	}
 }
