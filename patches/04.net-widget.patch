@@ -1,0 +1,517 @@
+--- b/src/app.rs
++++ a/src/app.rs
+@@ -2,15 +2,16 @@
+ use crate::colorscheme::Colorscheme;
+ use crate::widgets::*;
+ 
++pub struct App<'a, 'b> {
+-pub struct App<'a> {
+ 	pub help_menu: HelpMenu<'a>,
+ 	pub statusbar: Option<Statusbar<'a>>,
++	pub widgets: Widgets<'a, 'b>,
+-	pub widgets: Widgets<'a>,
+ }
+ 
++pub struct Widgets<'a, 'b> {
+-pub struct Widgets<'a> {
+ 	pub battery: Option<BatteryWidget<'a>>,
+ 	pub cpu: Option<CpuWidget<'a>>,
++	pub net: Option<NetWidget<'a, 'b>>,
+ 	pub proc: Option<ProcWidget<'a>>,
+ }
+ 
+@@ -18,7 +19,7 @@
+ 	args: &'b Args,
+ 	colorscheme: &'a Colorscheme,
+ 	program_name: &str,
++) -> App<'a, 'b> {
+-) -> App<'a> {
+ 	let help_menu = HelpMenu::new(colorscheme);
+ 
+     let battery = if args.battery || args.everything {
+@@ -33,6 +34,12 @@
+         None
+     };  
+ 
++    let net = if args.net || args.everything {
++        Some(NetWidget::new(colorscheme, &args.interface))
++    } else {
++        None
++    };   
++
+     let proc = if !args.proc || args.everything {
+         Some(ProcWidget::new(colorscheme))
+     } else {
+@@ -51,6 +58,7 @@
+ 		widgets: Widgets {
+ 			battery,
+ 			cpu,
++			net,
+ 			proc,
+ 		},
+ 	}
+--- b/src/args.rs
++++ a/src/args.rs
+@@ -16,6 +16,9 @@
+ 	#[structopt(short = "C", long = "cpu")]
+ 	pub cpu: bool,  
+ 
++	#[structopt(short = "N", long = "net")]
++	pub net: bool,   
++
+ 	#[structopt(short = "P", long = "no-proc")]
+ 	pub proc: bool,
+ 
+--- b/src/draw.rs
++++ a/src/draw.rs
+@@ -19,6 +19,9 @@
+     if widgets.cpu.is_some() {
+         count += 1;
+     }
++    if widgets.net.is_some() {
++        count += 1;
++    }
+     count 
+ }
+ 
+@@ -59,6 +62,11 @@
+         row_idx += 1;
+     }
+ 
++    if let Some(net) = widgets.net.as_ref() {
++        frame.render_widget(net, chunks[row_idx]);
++        row_idx += 1;
++    }
++
+     if let Some(proc) = widgets.proc.as_mut() {
+         frame.render_widget(proc, chunks[row_idx]);
+     }
+--- b/src/main.rs
++++ a/src/main.rs
+@@ -2,6 +2,7 @@
+ mod args;
+ mod colorscheme;
+ mod draw;
++mod sparkline;
+ mod update;
+ mod widgets;
+ 
+--- /dev/null
++++ a/src/sparkline.rs
+@@ -0,0 +1,180 @@
++use std::cmp::min;
++
++use tui::buffer::Buffer;
++use tui::layout::Rect;
++use tui::style::Style;
++use tui::symbols::bar;
++use tui::widgets::{Block, Widget};
++
++/// Widget to render a sparkline over one or more lines.
++///
++/// # Examples
++///
++/// ```
++/// # use tui::widgets::{Block, Borders, Sparkline};
++/// # use tui::style::{Style, Color};
++/// Sparkline::default()
++///     .block(Block::default().title("Sparkline").borders(Borders::ALL))
++///     .data(&[0, 2, 3, 4, 1, 4, 10])
++///     .max(5)
++///     .style(Style::default().fg(Color::Red).bg(Color::White));
++/// ```
++pub struct Sparkline<'a> {
++	/// A block to wrap the widget in
++	block: Option<Block<'a>>,
++	/// Widget style
++	style: Style,
++	/// A slice of the data to display
++	data: &'a [u64],
++	/// The maximum value to take to compute the maximum bar height (if nothing is specified, the
++	/// widget uses the max of the dataset)
++	max: Option<u64>,
++	/// If true, draws a baseline of `bar::ONE_EIGHTH` spanning the bottom of the sparkline graph
++	show_baseline: bool,
++	// The direction to render the sparkine, either from left to right, or from right to left
++	direction: RenderDirection,
++}
++
++pub enum RenderDirection {
++	LTR,
++	RTL,
++}
++
++impl<'a> Default for Sparkline<'a> {
++	fn default() -> Sparkline<'a> {
++		Sparkline {
++			block: None,
++			style: Default::default(),
++			data: &[],
++			max: None,
++			show_baseline: false,
++			direction: RenderDirection::LTR,
++		}
++	}
++}
++
++impl<'a> Sparkline<'a> {
++	pub fn style(mut self, style: Style) -> Sparkline<'a> {
++		self.style = style;
++		self
++	}
++
++	pub fn data(mut self, data: &'a [u64]) -> Sparkline<'a> {
++		self.data = data;
++		self
++	}
++
++	pub fn max(mut self, max: u64) -> Sparkline<'a> {
++		self.max = Some(max);
++		self
++	}
++
++	pub fn show_baseline(mut self, show_baseline: bool) -> Sparkline<'a> {
++		self.show_baseline = show_baseline;
++		self
++	}
++
++	pub fn direction(mut self, direction: RenderDirection) -> Sparkline<'a> {
++		self.direction = direction;
++		self
++	}
++}
++
++impl<'a> Widget for Sparkline<'a> {
++	fn render(self, area: Rect, buf: &mut Buffer) {
++		let spark_area = match self.block {
++			Some(ref b) => {
++				b.render(area, buf);
++				b.inner(area)
++			}
++			None => area,
++		};
++
++		if spark_area.height < 1 {
++			return;
++		}
++
++		if self.show_baseline {
++			for i in spark_area.left()..spark_area.right() {
++				buf.get_mut(i, spark_area.bottom() - 1)
++					.set_symbol(bar::ONE_EIGHTH)
++					.set_fg(self.style.fg)
++					.set_bg(self.style.bg);
++			}
++		}
++
++		let max = match self.max {
++			Some(v) => v,
++			None => *self.data.iter().max().unwrap_or(&1u64),
++		};
++		let max_index = min(spark_area.width as usize, self.data.len());
++		let mut data = self
++			.data
++			.iter()
++			.take(max_index)
++			.map(|e| {
++				if max != 0 {
++					e * u64::from(spark_area.height) * 8 / max
++				} else {
++					0
++				}
++			})
++			.collect::<Vec<u64>>();
++		for j in (0..spark_area.height).rev() {
++			for (i, d) in data.iter_mut().enumerate() {
++				let symbol = match *d {
++					0 => {
++						if self.show_baseline && j == spark_area.height - 1 {
++							bar::ONE_EIGHTH
++						} else {
++							" "
++						}
++					}
++					1 => bar::ONE_EIGHTH,
++					2 => bar::ONE_QUARTER,
++					3 => bar::THREE_EIGHTHS,
++					4 => bar::HALF,
++					5 => bar::FIVE_EIGHTHS,
++					6 => bar::THREE_QUARTERS,
++					7 => bar::SEVEN_EIGHTHS,
++					_ => bar::FULL,
++				};
++				let x = match self.direction {
++					RenderDirection::LTR => spark_area.left() + i as u16,
++					RenderDirection::RTL => spark_area.right() - i as u16 - 1,
++				};
++				buf.get_mut(x, spark_area.top() + j)
++					.set_symbol(symbol)
++					.set_fg(self.style.fg)
++					.set_bg(self.style.bg);
++
++				if *d > 8 {
++					*d -= 8;
++				} else {
++					*d = 0;
++				}
++			}
++		}
++	}
++}
++
++#[cfg(test)]
++mod tests {
++	use super::*;
++
++	#[test]
++	fn it_does_not_panic_if_max_is_zero() {
++		let widget = Sparkline::default().data(&[0, 0, 0]);
++		let area = Rect::new(0, 0, 3, 1);
++		let mut buffer = Buffer::empty(area);
++		widget.render(area, &mut buffer);
++	}
++
++	#[test]
++	fn it_does_not_panic_if_max_is_set_to_zero() {
++		let widget = Sparkline::default().data(&[0, 1, 2]).max(0);
++		let area = Rect::new(0, 0, 3, 1);
++		let mut buffer = Buffer::empty(area);
++		widget.render(area, &mut buffer);
++	}
++}
+--- b/src/update.rs
++++ a/src/update.rs
+@@ -11,6 +11,10 @@
+     let mut widgets_to_update: Vec<&mut (dyn UpdatableWidget)> =
+         vec![];
+ 
++    if let Some(net) = widgets.net.as_mut() {
++        widgets_to_update.push(net);
++    }
++
+     if let Some(cpu) = widgets.cpu.as_mut() {
+         widgets_to_update.push(cpu);
+     }
+--- b/src/widgets/mod.rs
++++ a/src/widgets/mod.rs
+@@ -2,11 +2,13 @@
+ mod block;
+ mod cpu;
+ mod help_menu;
++mod net;
+ mod proc;
+ mod statusbar;
+ 
+ pub use self::battery::BatteryWidget;
+ pub use self::cpu::CpuWidget;
+ pub use self::help_menu::HelpMenu;
++pub use self::net::NetWidget;
+ pub use self::proc::ProcWidget;
+ pub use self::statusbar::Statusbar;
+--- /dev/null
++++ a/src/widgets/net.rs
+@@ -0,0 +1,204 @@
++use num_rational::Ratio;
++use psutil::network;
++use size::Size;
++use tui::buffer::Buffer;
++use tui::layout::Rect;
++use tui::style::Modifier;
++// use tui::widgets::{RenderDirection, Sparkline, Widget};
++use crate::sparkline::{RenderDirection, Sparkline};
++use tui::widgets::Widget;
++
++use crate::colorscheme::Colorscheme;
++use crate::update::UpdatableWidget;
++use crate::widgets::block;
++
++const VPN_INTERFACE: &str = "tun0";
++
++pub struct NetWidget<'a, 'b> {
++	title: String,
++	update_interval: Ratio<u64>,
++	colorscheme: &'a Colorscheme,
++
++	interface: &'b str,
++
++	bytes_recv: Vec<u64>,
++	bytes_sent: Vec<u64>,
++
++	total_bytes_recv: u64,
++	total_bytes_sent: u64,
++
++	collector: network::NetIoCountersCollector,
++}
++
++impl NetWidget<'_, '_> {
++	pub fn new<'a, 'b>(colorscheme: &'a Colorscheme, interface: &'b str) -> NetWidget<'a, 'b> {
++		NetWidget {
++			title: if interface == "all" {
++				" Network Usage ".to_string()
++			} else {
++				format!(" Network Usage: {} ", interface)
++			},
++			update_interval: Ratio::from_integer(1),
++			colorscheme,
++
++			interface,
++
++			bytes_recv: Vec::new(),
++			bytes_sent: Vec::new(),
++
++			total_bytes_recv: 0,
++			total_bytes_sent: 0,
++
++			collector: network::NetIoCountersCollector::default(),
++		}
++	}
++}
++
++impl UpdatableWidget for NetWidget<'_, '_> {
++	fn update(&mut self) {
++		let io_counters: network::NetIoCounters = self
++			.collector
++			.net_io_counters_pernic()
++			.unwrap()
++			.into_iter()
++			.filter(|(name, _counters)| {
++				// Filter out the VPN interface unless specified directly since it gets double
++				// counted along with the hardware interfaces it is operating on.
++				(self.interface == "all" && name != VPN_INTERFACE) || name == self.interface
++			})
++			.map(|(_name, counters)| counters)
++			.sum();
++
++		if self.total_bytes_recv == 0 {
++			self.bytes_recv.push(0);
++			self.bytes_sent.push(0);
++		} else {
++			self.bytes_recv
++				.push(io_counters.bytes_recv() - self.total_bytes_recv);
++			self.bytes_sent
++				.push(io_counters.bytes_sent() - self.total_bytes_sent);
++		}
++
++		self.total_bytes_recv = io_counters.bytes_recv();
++		self.total_bytes_sent = io_counters.bytes_sent();
++	}
++
++	fn get_update_interval(&self) -> Ratio<u64> {
++		self.update_interval
++	}
++}
++
++impl Widget for &NetWidget<'_, '_> {
++	fn render(self, area: Rect, buf: &mut Buffer) {
++		block::new(self.colorscheme, &self.title).render(area, buf);
++
++		let inner = Rect {
++			x: area.x + 1,
++			y: area.y + 1,
++			width: area.width - 2,
++			height: area.height - 2,
++		};
++
++		let top_half = Rect {
++			x: inner.x,
++			y: inner.y,
++			width: inner.width,
++			height: (inner.height / 2),
++		};
++
++		let bottom_half = Rect {
++			x: inner.x,
++			y: inner.y + (inner.height / 2),
++			width: inner.width,
++			height: (inner.height / 2),
++		};
++
++		let top_sparkline = Rect {
++			x: top_half.x,
++			y: top_half.y + 3,
++			width: top_half.width,
++			height: i16::max(top_half.height as i16 - 3, 0) as u16,
++		};
++
++		let bottom_sparkline = Rect {
++			x: bottom_half.x,
++			y: bottom_half.y + 3,
++			width: bottom_half.width,
++			height: i16::max(bottom_half.height as i16 - 3, 0) as u16,
++		};
++
++		if inner.height < 3 {
++			return;
++		}
++
++		buf.set_string(
++			top_half.x + 1,
++			top_half.y + 1,
++			format!("Total Rx: {}", Size::Bytes(self.total_bytes_recv)),
++			self.colorscheme.text.modifier(Modifier::BOLD),
++		);
++
++		buf.set_string(
++			top_half.x + 1,
++			top_half.y + 2,
++			format!(
++				"Rx/s:     {}/s",
++				Size::Bytes(self.bytes_recv.last().unwrap().to_owned())
++			),
++			self.colorscheme.text.modifier(Modifier::BOLD),
++		);
++
++		Sparkline::default()
++			.data(
++				&self
++					.bytes_recv
++					.iter()
++					.cloned()
++					.rev()
++					.collect::<Vec<u64>>()
++					.as_slice(),
++			)
++			.direction(RenderDirection::RTL)
++			.show_baseline(true)
++			.max(*self.bytes_recv.iter().max().unwrap())
++			.style(self.colorscheme.net_bars)
++			.render(top_sparkline, buf);
++
++		if inner.height < 5 {
++			return;
++		}
++
++		buf.set_string(
++			bottom_half.x + 1,
++			bottom_half.y + 1,
++			format!("Total Tx: {}", Size::Bytes(self.total_bytes_sent)),
++			self.colorscheme.text.modifier(Modifier::BOLD),
++		);
++
++		buf.set_string(
++			bottom_half.x + 1,
++			bottom_half.y + 2,
++			format!(
++				"Tx/s:     {}/s",
++				Size::Bytes(self.bytes_sent.last().unwrap().to_owned())
++			),
++			self.colorscheme.text.modifier(Modifier::BOLD),
++		);
++
++		Sparkline::default()
++			.data(
++				&self
++					.bytes_sent
++					.iter()
++					.cloned()
++					.rev()
++					.collect::<Vec<u64>>()
++					.as_slice(),
++			)
++			.direction(RenderDirection::RTL)
++			.show_baseline(true)
++			.max(*self.bytes_sent.iter().max().unwrap())
++			.style(self.colorscheme.net_bars)
++			.render(bottom_sparkline, buf);
++	}
++}
