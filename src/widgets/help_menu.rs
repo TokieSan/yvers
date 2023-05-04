@@ -40,38 +40,38 @@ const TEXT_WIDTH: u16 = 48;
 const TEXT_HEIGHT: u16 = 29;
 
 static TEXT_VEC: Lazy<Vec<Text<'static>>> = Lazy::new(|| {
-	TEXT.lines()
-		.map(|line| Text::raw(format!("{}\n", line)))
-		.collect()
+    TEXT.lines()
+        .map(|line| Text::raw(format!("{}\n", line)))
+        .collect()
 });
 
 pub struct HelpMenu<'a> {
-	title: String,
-	colorscheme: &'a Colorscheme,
+    title: String,
+    colorscheme: &'a Colorscheme,
 }
 
 impl HelpMenu<'_> {
-	pub fn new(colorscheme: &Colorscheme) -> HelpMenu {
-		HelpMenu {
-			title: " Help Menu ".to_string(),
-			colorscheme,
-		}
-	}
+    pub fn new(colorscheme: &Colorscheme) -> HelpMenu {
+        HelpMenu {
+            title: " Help Menu ".to_string(),
+            colorscheme,
+        }
+    }
 
-	pub fn get_rect(&self, area: Rect) -> Rect {
-		Rect {
-			x: area.width.checked_sub(TEXT_WIDTH).unwrap_or_default() / 2,
-			y: area.height.checked_sub(TEXT_HEIGHT).unwrap_or_default() / 2,
-			width: cmp::min(TEXT_WIDTH, area.width),
-			height: cmp::min(TEXT_HEIGHT, area.height),
-		}
-	}
+    pub fn get_rect(&self, area: Rect) -> Rect {
+        Rect {
+            x: area.width.checked_sub(TEXT_WIDTH).unwrap_or_default() / 2,
+            y: area.height.checked_sub(TEXT_HEIGHT).unwrap_or_default() / 2,
+            width: cmp::min(TEXT_WIDTH, area.width),
+            height: cmp::min(TEXT_HEIGHT, area.height),
+        }
+    }
 }
 
 impl Widget for &HelpMenu<'_> {
-	fn render(self, area: Rect, buf: &mut Buffer) {
-		Paragraph::new(TEXT_VEC.iter())
-			.block(block::new(self.colorscheme, &self.title))
-			.render(area, buf);
-	}
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        Paragraph::new(TEXT_VEC.iter())
+            .block(block::new(self.colorscheme, &self.title))
+            .render(area, buf);
+    }
 }

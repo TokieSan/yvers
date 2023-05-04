@@ -33,339 +33,339 @@ use update::*;
 const PROGRAM_NAME: &str = env!("CARGO_PKG_NAME");
 
 fn setup_terminal() {
-	let mut stdout = io::stdout();
+    let mut stdout = io::stdout();
 
-	execute!(stdout, terminal::EnterAlternateScreen).unwrap();
-	execute!(stdout, cursor::Hide).unwrap();
+    execute!(stdout, terminal::EnterAlternateScreen).unwrap();
+    execute!(stdout, cursor::Hide).unwrap();
 
-	// Needed for when ytop is run in a TTY since TTYs don't actually have an alternate screen.
-	// Must be executed after attempting to enter the alternate screen so that it only clears the
-	// 		primary screen if we are running in a TTY.
-	// If not running in a TTY, then we just end up clearing the alternate screen which should have
-	// 		no effect.
-	execute!(stdout, terminal::Clear(terminal::ClearType::All)).unwrap();
+    // Needed for when ytop is run in a TTY since TTYs don't actually have an alternate screen.
+    // Must be executed after attempting to enter the alternate screen so that it only clears the
+    // 		primary screen if we are running in a TTY.
+    // If not running in a TTY, then we just end up clearing the alternate screen which should have
+    // 		no effect.
+    execute!(stdout, terminal::Clear(terminal::ClearType::All)).unwrap();
 
-	terminal::enable_raw_mode().unwrap();
+    terminal::enable_raw_mode().unwrap();
 }
 
 fn cleanup_terminal() {
-	let mut stdout = io::stdout();
+    let mut stdout = io::stdout();
 
-	// Needed for when ytop is run in a TTY since TTYs don't actually have an alternate screen.
-	// Must be executed before attempting to leave the alternate screen so that it only modifies the
-	// 		primary screen if we are running in a TTY.
-	// If not running in a TTY, then we just end up modifying the alternate screen which should have
-	// 		no effect.
-	execute!(stdout, cursor::MoveTo(0, 0)).unwrap();
-	execute!(stdout, terminal::Clear(terminal::ClearType::All)).unwrap();
+    // Needed for when ytop is run in a TTY since TTYs don't actually have an alternate screen.
+    // Must be executed before attempting to leave the alternate screen so that it only modifies the
+    // 		primary screen if we are running in a TTY.
+    // If not running in a TTY, then we just end up modifying the alternate screen which should have
+    // 		no effect.
+    execute!(stdout, cursor::MoveTo(0, 0)).unwrap();
+    execute!(stdout, terminal::Clear(terminal::ClearType::All)).unwrap();
 
-	execute!(stdout, terminal::LeaveAlternateScreen).unwrap();
-	execute!(stdout, cursor::Show).unwrap();
+    execute!(stdout, terminal::LeaveAlternateScreen).unwrap();
+    execute!(stdout, cursor::Show).unwrap();
 
-	terminal::disable_raw_mode().unwrap();
+    terminal::disable_raw_mode().unwrap();
 }
 
 fn setup_ui_events() -> Receiver<Event> {
-	let (sender, receiver) = unbounded();
-	thread::spawn(move || loop {
-		sender.send(crossterm::event::read().unwrap()).unwrap();
-	});
+    let (sender, receiver) = unbounded();
+    thread::spawn(move || loop {
+        sender.send(crossterm::event::read().unwrap()).unwrap();
+    });
 
-	receiver
+    receiver
 }
 
 fn setup_ctrl_c() -> Receiver<()> {
-	let (sender, receiver) = unbounded();
-	ctrlc::set_handler(move || {
-		sender.send(()).unwrap();
-	})
-	.unwrap();
+    let (sender, receiver) = unbounded();
+    ctrlc::set_handler(move || {
+        sender.send(()).unwrap();
+    })
+    .unwrap();
 
-	receiver
+    receiver
 }
 
 // The log file currently isn't being used for anything right now, but it does help when debugging
 // and we'll probably use it when we clean up the error handling.
 fn setup_logfile(logfile_path: &Path) {
-	fs::create_dir_all(logfile_path.parent().unwrap()).unwrap();
-	let logfile = fs::OpenOptions::new()
-		.write(true)
-		.create(true)
-		.truncate(true)
-		.open(logfile_path)
-		.unwrap();
-	fern::Dispatch::new()
-		.format(|out, message, record| {
-			out.finish(format_args!(
-				"{}[{}][{}]: {}",
-				chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
-				record.target(),
-				record.level(),
-				message
-			))
-		})
-		.chain(logfile)
-		.level_for("mio", log::LevelFilter::Debug)
-		.apply()
-		.unwrap();
+    fs::create_dir_all(logfile_path.parent().unwrap()).unwrap();
+    let logfile = fs::OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(logfile_path)
+        .unwrap();
+    fern::Dispatch::new()
+        .format(|out, message, record| {
+            out.finish(format_args!(
+                "{}[{}][{}]: {}",
+                chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
+                record.target(),
+                record.level(),
+                message
+            ))
+        })
+        .chain(logfile)
+        .level_for("mio", log::LevelFilter::Debug)
+        .apply()
+        .unwrap();
 }
 
 // We need to catch panics since we need to close the UI and cleanup the terminal before logging any
 // error messages to the screen.
 fn setup_panic_hook() {
-	panic::set_hook(Box::new(|panic_info| {
-		cleanup_terminal();
-		better_panic::Settings::auto().create_panic_handler()(panic_info);
-	}));
+    panic::set_hook(Box::new(|panic_info| {
+        cleanup_terminal();
+        better_panic::Settings::auto().create_panic_handler()(panic_info);
+    }));
 }
 
 fn main() {
-	better_panic::install();
+    better_panic::install();
 
-	let args = Args::from_args();
-	let draw_interval = Ratio::min(Ratio::from_integer(1), args.interval);
+    let args = Args::from_args();
+    let draw_interval = Ratio::min(Ratio::from_integer(1), args.interval);
 
-	let app_dirs = AppDirs::new(Some(PROGRAM_NAME), AppUI::CommandLine).unwrap();
-	let logfile_path = app_dirs.state_dir.join("errors.log");
+    let app_dirs = AppDirs::new(Some(PROGRAM_NAME), AppUI::CommandLine).unwrap();
+    let logfile_path = app_dirs.state_dir.join("errors.log");
 
-	let colorscheme = read_colorscheme(&app_dirs.config_dir, &args.colorscheme);
-	let mut app = setup_app(&args, &colorscheme, PROGRAM_NAME);
-	setup_logfile(&logfile_path);
+    let colorscheme = read_colorscheme(&app_dirs.config_dir, &args.colorscheme);
+    let mut app = setup_app(&args, &colorscheme, PROGRAM_NAME);
+    setup_logfile(&logfile_path);
 
-	let backend = CrosstermBackend::new(io::stdout());
-	let mut terminal = Terminal::new(backend).unwrap();
+    let backend = CrosstermBackend::new(io::stdout());
+    let mut terminal = Terminal::new(backend).unwrap();
 
-	setup_panic_hook();
-	setup_terminal();
+    setup_panic_hook();
+    setup_terminal();
 
-	let ticker = tick(Duration::from_secs_f64(
-		*draw_interval.numer() as f64 / *draw_interval.denom() as f64,
-	));
-	let ui_events_receiver = setup_ui_events();
-	let ctrl_c_events = setup_ctrl_c();
+    let ticker = tick(Duration::from_secs_f64(
+        *draw_interval.numer() as f64 / *draw_interval.denom() as f64,
+    ));
+    let ui_events_receiver = setup_ui_events();
+    let ctrl_c_events = setup_ctrl_c();
 
-	// Used to keep track of how many seconds has passed so we know which widgets to update.
-	// Resets to 0 every 60 Seconds.
-	let mut update_seconds = Ratio::from_integer(0);
+    // Used to keep track of how many seconds has passed so we know which widgets to update.
+    // Resets to 0 every 60 Seconds.
+    let mut update_seconds = Ratio::from_integer(0);
 
-	let mut show_help_menu = false;
-	let mut paused = false;
+    let mut show_help_menu = false;
+    let mut paused = false;
 
-	// Used to keep track of the previous key for actions that required 2 keypresses.
-	let mut previous_key_event: Option<KeyEvent> = None;
-	// If `skip_key` is set to true, we set the previous key to None instead of recording it.
-	let mut skip_key: bool;
+    // Used to keep track of the previous key for actions that required 2 keypresses.
+    let mut previous_key_event: Option<KeyEvent> = None;
+    // If `skip_key` is set to true, we set the previous key to None instead of recording it.
+    let mut skip_key: bool;
 
-	// Used to keep track of whether we need to redraw the process or CPU/Mem widgets after they
-	// have been updated.
-	let mut proc_modified: bool;
-	let mut graphs_modified: bool;
+    // Used to keep track of whether we need to redraw the process or CPU/Mem widgets after they
+    // have been updated.
+    let mut proc_modified: bool;
+    let mut graphs_modified: bool;
 
-	update_widgets(&mut app.widgets, update_seconds);
-	draw(&mut terminal, &mut app);
+    update_widgets(&mut app.widgets, update_seconds);
+    draw(&mut terminal, &mut app);
 
-	loop {
-		select! {
-			recv(ctrl_c_events) -> _ => {
-				break;
-			}
-			recv(ticker) -> _ => {
-				if !paused {
-					update_seconds = (update_seconds + draw_interval) % Ratio::from_integer(60);
-					update_widgets(&mut app.widgets, update_seconds);
-					if !show_help_menu {
-						draw(&mut terminal, &mut app);
-					}
-				}
-			}
-			recv(ui_events_receiver) -> message => {
-				proc_modified = false;
-				graphs_modified = false;
-				skip_key = false;
+    loop {
+        select! {
+            recv(ctrl_c_events) -> _ => {
+                break;
+            }
+            recv(ticker) -> _ => {
+                if !paused {
+                    update_seconds = (update_seconds + draw_interval) % Ratio::from_integer(60);
+                    update_widgets(&mut app.widgets, update_seconds);
+                    if !show_help_menu {
+                        draw(&mut terminal, &mut app);
+                    }
+                }
+            }
+            recv(ui_events_receiver) -> message => {
+                proc_modified = false;
+                graphs_modified = false;
+                skip_key = false;
 
-				match message.unwrap() {
-					Event::Key(key_event) => {
-						if key_event.modifiers.is_empty() {
-							match key_event.code {
-								KeyCode::Char('q') => {
-									break
-								},
-								KeyCode::Char('?') => {
-									show_help_menu = !show_help_menu;
-									if show_help_menu {
-										draw_help_menu(&mut terminal, &mut app);
-									} else {
-										draw(&mut terminal, &mut app);
-									}
-								},
-								KeyCode::Char(' ') => {
-									paused = !paused;
-								},
-								KeyCode::Char('j') | KeyCode::Down => {
+                match message.unwrap() {
+                    Event::Key(key_event) => {
+                        if key_event.modifiers.is_empty() {
+                            match key_event.code {
+                                KeyCode::Char('q') => {
+                                    break
+                                },
+                                KeyCode::Char('?') => {
+                                    show_help_menu = !show_help_menu;
+                                    if show_help_menu {
+                                        draw_help_menu(&mut terminal, &mut app);
+                                    } else {
+                                        draw(&mut terminal, &mut app);
+                                    }
+                                },
+                                KeyCode::Char(' ') => {
+                                    paused = !paused;
+                                },
+                                KeyCode::Char('j') | KeyCode::Down => {
                                     if let Some(proc) = app.widgets.proc.as_mut() {
                                         proc.scroll_down();
                                     }
-									proc_modified = true;
-								},
-								KeyCode::Char('k') | KeyCode::Up => {
+                                    proc_modified = true;
+                                },
+                                KeyCode::Char('k') | KeyCode::Up => {
                                     if let Some(proc) = app.widgets.proc.as_mut() {
                                         proc.scroll_up();
                                     }
-									proc_modified = true;
-								},
-								KeyCode::Char('g') => {
-									if previous_key_event == Some(KeyEvent::from(KeyCode::Char('g'))) {
+                                    proc_modified = true;
+                                },
+                                KeyCode::Char('g') => {
+                                    if previous_key_event == Some(KeyEvent::from(KeyCode::Char('g'))) {
                                         if let Some(proc) = app.widgets.proc.as_mut() {
                                             proc.scroll_top();
                                         }
-										proc_modified = true;
-										skip_key = true;
-									}
-								},
-								KeyCode::Home => {
+                                        proc_modified = true;
+                                        skip_key = true;
+                                    }
+                                },
+                                KeyCode::Home => {
                                     if let Some(proc) = app.widgets.proc.as_mut() {
                                         proc.scroll_top();
                                     }
-									proc_modified = true;
-								},
-								KeyCode::Char('G') | KeyCode::End => {
+                                    proc_modified = true;
+                                },
+                                KeyCode::Char('G') | KeyCode::End => {
                                     if let Some(proc) = app.widgets.proc.as_mut() {
                                         proc.scroll_bottom();
                                     }
-									proc_modified = true;
-								},
-								KeyCode::Char('d') => {
-									if previous_key_event == Some(KeyEvent::from(KeyCode::Char('d'))) {
+                                    proc_modified = true;
+                                },
+                                KeyCode::Char('d') => {
+                                    if previous_key_event == Some(KeyEvent::from(KeyCode::Char('d'))) {
                                         if let Some(proc) = app.widgets.proc.as_mut() {
                                             proc.kill_process();
                                         }
-										skip_key = true;
-									}
-								},
-								KeyCode::Char('h') => {
+                                        skip_key = true;
+                                    }
+                                },
+                                KeyCode::Char('h') => {
                                     if let Some(cpu) = app.widgets.cpu.as_mut() {
                                         cpu.scale_in();
                                     }
                                     graphs_modified = true;
-								},
-								KeyCode::Char('l') => {
+                                },
+                                KeyCode::Char('l') => {
                                     if let Some(cpu) = app.widgets.cpu.as_mut() {
                                         cpu.scale_out();
                                     }
                                     graphs_modified = true;
-								},
-								KeyCode::Esc => {
-									if show_help_menu {
-										show_help_menu = false;
-										draw(&mut terminal, &mut app);
-									}
-								}
-								KeyCode::Tab => {
+                                },
+                                KeyCode::Esc => {
+                                    if show_help_menu {
+                                        show_help_menu = false;
+                                        draw(&mut terminal, &mut app);
+                                    }
+                                }
+                                KeyCode::Tab => {
                                     if let Some(proc) = app.widgets.proc.as_mut() {
                                         proc.toggle_grouping();
                                     }
-									proc_modified = true;
-								},
-								KeyCode::Char('p') => {
+                                    proc_modified = true;
+                                },
+                                KeyCode::Char('p') => {
                                     if let Some(proc) = app.widgets.proc.as_mut() {
                                         proc.sort_by_num();
                                     }
-									proc_modified = true;
-								},
-								KeyCode::Char('n') => {
+                                    proc_modified = true;
+                                },
+                                KeyCode::Char('n') => {
                                     if let Some(proc) = app.widgets.proc.as_mut() {
                                         proc.sort_by_command();
                                     }
-									proc_modified = true;
-								},
-								KeyCode::Char('c') => {
+                                    proc_modified = true;
+                                },
+                                KeyCode::Char('c') => {
                                     if let Some(proc) = app.widgets.proc.as_mut() {
                                         proc.sort_by_cpu();
                                     }
-									proc_modified = true;
-								},
-								KeyCode::Char('m') => {
+                                    proc_modified = true;
+                                },
+                                KeyCode::Char('m') => {
                                     if let Some(proc) = app.widgets.proc.as_mut() {
                                         proc.sort_by_mem();
                                     }
-									proc_modified = true;
-								},
-								_ => {}
-							}
-						} else if key_event.modifiers == KeyModifiers::CONTROL {
-							match key_event.code {
-								KeyCode::Char('c') => {
-									break
-								},
-								KeyCode::Char('d') => {
+                                    proc_modified = true;
+                                },
+                                _ => {}
+                            }
+                        } else if key_event.modifiers == KeyModifiers::CONTROL {
+                            match key_event.code {
+                                KeyCode::Char('c') => {
+                                    break
+                                },
+                                KeyCode::Char('d') => {
                                     if let Some(proc) = app.widgets.proc.as_mut() {
                                         proc.scroll_half_page_down();
                                     }
-									proc_modified = true;
-								},
+                                    proc_modified = true;
+                                },
                                 KeyCode::Char('u') => {
                                     if let Some(proc) = app.widgets.proc.as_mut() {
                                         proc.scroll_half_page_up();
                                     }
-									proc_modified = true;
-								},
-								KeyCode::Char('f') => {
+                                    proc_modified = true;
+                                },
+                                KeyCode::Char('f') => {
                                     if let Some(proc) = app.widgets.proc.as_mut() {
                                         proc.scroll_full_page_down();
                                     }
-									proc_modified = true;
-								},
-								KeyCode::Char('b') => {
+                                    proc_modified = true;
+                                },
+                                KeyCode::Char('b') => {
                                     if let Some(proc) = app.widgets.proc.as_mut() {
                                         proc.scroll_full_page_up();
                                     }
-									proc_modified = true;
-								},
-								_ => {}
-							}
-						}
+                                    proc_modified = true;
+                                },
+                                _ => {}
+                            }
+                        }
 
-						previous_key_event = if skip_key {
-							None
-						} else {
-							Some(key_event)
-						};
-					}
-					// TODO: figure out why these aren't working
-					Event::Mouse(mouse_event) => match mouse_event {
-						MouseEvent::ScrollUp(_, _, _) => {
+                        previous_key_event = if skip_key {
+                            None
+                        } else {
+                            Some(key_event)
+                        };
+                    }
+                    // TODO: figure out why these aren't working
+                    Event::Mouse(mouse_event) => match mouse_event {
+                        MouseEvent::ScrollUp(_, _, _) => {
                             if let Some(proc) = app.widgets.proc.as_mut() {
                                 proc.scroll_up();
                             }
-							proc_modified = true;
-						},
-						MouseEvent::ScrollDown(_, _, _) => {
+                            proc_modified = true;
+                        },
+                        MouseEvent::ScrollDown(_, _, _) => {
                             if let Some(proc) = app.widgets.proc.as_mut() {
                                 proc.scroll_down();
                             }
-							proc_modified = true;
-						},
-						_ => {}
-					}
-					Event::Resize(_width, _height) => {
-						if show_help_menu {
-							draw_help_menu(&mut terminal, &mut app);
-						} else {
-							draw(&mut terminal, &mut app);
-						}
-					}
-				}
+                            proc_modified = true;
+                        },
+                        _ => {}
+                    }
+                    Event::Resize(_width, _height) => {
+                        if show_help_menu {
+                            draw_help_menu(&mut terminal, &mut app);
+                        } else {
+                            draw(&mut terminal, &mut app);
+                        }
+                    }
+                }
 
-				if !show_help_menu {
-					if proc_modified {
-						draw_proc(&mut terminal, &mut app);
-					} else if graphs_modified {
-						draw_graphs(&mut terminal, &mut app);
-					}
-				}
-			}
-		}
-	}
+                if !show_help_menu {
+                    if proc_modified {
+                        draw_proc(&mut terminal, &mut app);
+                    } else if graphs_modified {
+                        draw_graphs(&mut terminal, &mut app);
+                    }
+                }
+            }
+        }
+    }
 
-	cleanup_terminal();
+    cleanup_terminal();
 }
