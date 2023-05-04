@@ -1,1 +1,2 @@
-hard_tabs = true
+indent_style = "Block" 
+indent_size = 4
