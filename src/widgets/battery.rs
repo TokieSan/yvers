@@ -81,7 +81,7 @@ impl Widget for &BatteryWidget<'_> {
 					.marker(Marker::Braille)
 					.style(self.colorscheme.battery_lines[i % self.colorscheme.battery_lines.len()])
 					.graph_type(GraphType::Line)
-					.data(&data)
+					.data(data)
 			})
 			.collect();
 

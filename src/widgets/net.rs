@@ -150,7 +150,7 @@ impl Widget for &NetWidget<'_, '_> {
 
 		Sparkline::default()
 			.data(
-				&self
+				self
 					.bytes_recv
 					.iter()
 					.cloned()
@@ -187,7 +187,7 @@ impl Widget for &NetWidget<'_, '_> {
 
 		Sparkline::default()
 			.data(
-				&self
+				self
 					.bytes_sent
 					.iter()
 					.cloned()
