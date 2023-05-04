@@ -36,8 +36,8 @@ pub struct Sparkline<'a> {
 }
 
 pub enum RenderDirection {
-	LTR,
-	RTL,
+	Ltr,
+	Rtl,
 }
 
 impl<'a> Default for Sparkline<'a> {
@@ -48,7 +48,7 @@ impl<'a> Default for Sparkline<'a> {
 			data: &[],
 			max: None,
 			show_baseline: false,
-			direction: RenderDirection::LTR,
+			direction: RenderDirection::Ltr,
 		}
 	}
 }
@@ -140,8 +140,8 @@ impl<'a> Widget for Sparkline<'a> {
 					_ => bar::FULL,
 				};
 				let x = match self.direction {
-					RenderDirection::LTR => spark_area.left() + i as u16,
-					RenderDirection::RTL => spark_area.right() - i as u16 - 1,
+					RenderDirection::Ltr => spark_area.left() + i as u16,
+					RenderDirection::Rtl => spark_area.right() - i as u16 - 1,
 				};
 				buf.get_mut(x, spark_area.top() + j)
 					.set_symbol(symbol)

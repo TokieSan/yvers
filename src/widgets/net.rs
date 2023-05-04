@@ -158,7 +158,7 @@ impl Widget for &NetWidget<'_, '_> {
 					.collect::<Vec<u64>>()
 					.as_slice(),
 			)
-			.direction(RenderDirection::RTL)
+			.direction(RenderDirection::Rtl)
 			.show_baseline(true)
 			.max(*self.bytes_recv.iter().max().unwrap())
 			.style(self.colorscheme.net_bars)
@@ -195,7 +195,7 @@ impl Widget for &NetWidget<'_, '_> {
 					.collect::<Vec<u64>>()
 					.as_slice(),
 			)
-			.direction(RenderDirection::RTL)
+			.direction(RenderDirection::Rtl)
 			.show_baseline(true)
 			.max(*self.bytes_sent.iter().max().unwrap())
 			.style(self.colorscheme.net_bars)
