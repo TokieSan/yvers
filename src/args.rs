@@ -9,19 +9,23 @@ pub struct Args {
     #[structopt(short = "a", long = "average-cpu")]
     pub average_cpu: bool,
 
-    /// Show widgets or not
+    /// Show battery widget.
     #[structopt(short = "B", long = "battery")]
     pub battery: bool,
 
+    /// Show CPU widget.
     #[structopt(short = "C", long = "cpu")]
     pub cpu: bool,
 
+    /// Show Network widget.
     #[structopt(short = "N", long = "net")]
     pub net: bool,
 
+    /// Hide processes widget.
     #[structopt(short = "P", long = "no-proc")]
     pub proc: bool,
 
+    /// Show all widgets.
     #[structopt(short = "E", long = "everything")]
     pub everything: bool,
 
@@ -48,7 +52,8 @@ pub struct Args {
     #[structopt(short = "I", long = "interval", default_value = "1")]
     pub interval: Ratio<u64>,
 
-    /// Only show the CPU, Mem, and Process widgets.
+    // TODO: Make this into a config file for extensibility
+    /// Only show the minimal flagged widgets.
     #[structopt(short = "m", long = "minimal")]
     pub minimal: bool,
 
