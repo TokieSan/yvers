@@ -20,30 +20,20 @@ use crate::widgets::block;
 const UP_ARROW: &str = "▲";
 const DOWN_ARROW: &str = "▼";
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Default)]
 enum SortMethod {
+    #[default]
     Cpu,
     Mem,
     Num,
     Command,
 }
 
-impl Default for SortMethod {
-    fn default() -> Self {
-        SortMethod::Cpu
-    }
-}
-
-#[derive(PartialEq, Clone, Copy)]
+#[derive(PartialEq, Clone, Copy, Default)]
 enum SortDirection {
-    Up,
+    #[default]
     Down,
-}
-
-impl Default for SortDirection {
-    fn default() -> Self {
-        SortDirection::Down
-    }
+    Up,
 }
 
 impl Not for SortDirection {
