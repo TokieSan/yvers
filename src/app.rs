@@ -9,14 +9,6 @@ pub struct App<'a, 'b> {
 }
 
 pub struct Widgets<'a, 'b> {
-<<<<<<< HEAD
-    pub battery: Option<BatteryWidget<'a>>,
-    pub cpu: Option<CpuWidget<'a>>,
-    pub disk: Option<DiskWidget<'a>>,
-    pub mem: Option<MemWidget<'a>>,
-    pub net: Option<NetWidget<'a, 'b>>,
-    pub proc: Option<ProcWidget<'a>>,
-=======
     pub battery: Option<BatteryWidget<'a>>,
     pub cpu: Option<CpuWidget<'a>>,
     pub disk: Option<DiskWidget<'a>>,
@@ -24,7 +16,6 @@ pub struct Widgets<'a, 'b> {
     pub net: Option<NetWidget<'a, 'b>>,
     pub proc: Option<ProcWidget<'a>>,
     pub temp: Option<TempWidget<'a>>,
->>>>>>> parent of 65e7dc8 (Temp widget patch preparation)
 }
 
 pub fn setup_app<'a, 'b>(

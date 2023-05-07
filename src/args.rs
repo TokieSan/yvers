@@ -56,15 +56,13 @@ pub struct Args {
     )]
     pub colorscheme: Colorschemes,
 
-<<<<<<< HEAD
     /// The name of the network interface to show in the Net widget. 'all' shows all interfaces.
     #[structopt(short = "i", long = "interface", default_value = "all")]
     pub interface: String,
-=======
+
     /// Show temperatures in fahrenheit.
     #[structopt(short = "f", long = "fahrenheit")]
     pub fahrenheit: bool,
->>>>>>> parent of 65e7dc8 (Temp widget patch preparation)
 
     /// Interval in seconds between updates of the CPU and Mem widgets. Can specify either a whole number or a fraction with a numerator of 1.
     #[structopt(short = "I", long = "interval", default_value = "1")]
