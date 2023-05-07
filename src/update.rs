@@ -18,6 +18,10 @@ pub fn update_widgets(widgets: &mut Widgets, seconds: Ratio<u64>) {
         widgets_to_update.push(net);
     }
 
+    if let Some(temp) = widgets.temp.as_mut() {
+        widgets_to_update.push(temp);
+    } 
+
     if let Some(cpu) = widgets.cpu.as_mut() {
         widgets_to_update.push(cpu);
     }

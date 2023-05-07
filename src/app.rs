@@ -9,12 +9,22 @@ pub struct App<'a, 'b> {
 }
 
 pub struct Widgets<'a, 'b> {
+<<<<<<< HEAD
     pub battery: Option<BatteryWidget<'a>>,
     pub cpu: Option<CpuWidget<'a>>,
     pub disk: Option<DiskWidget<'a>>,
     pub mem: Option<MemWidget<'a>>,
     pub net: Option<NetWidget<'a, 'b>>,
     pub proc: Option<ProcWidget<'a>>,
+=======
+    pub battery: Option<BatteryWidget<'a>>,
+    pub cpu: Option<CpuWidget<'a>>,
+    pub disk: Option<DiskWidget<'a>>,
+    pub mem: Option<MemWidget<'a>>,
+    pub net: Option<NetWidget<'a, 'b>>,
+    pub proc: Option<ProcWidget<'a>>,
+    pub temp: Option<TempWidget<'a>>,
+>>>>>>> parent of 65e7dc8 (Temp widget patch preparation)
 }
 
 pub fn setup_app<'a, 'b>(
@@ -65,6 +75,12 @@ pub fn setup_app<'a, 'b>(
         None
     };
 
+    let temp =  if args.temp || args.everything {
+        Some(TempWidget::new(colorscheme, args.fahrenheit))
+    } else {
+        None
+    };
+
     let statusbar = if args.statusbar || args.everything {
         Some(Statusbar::new(colorscheme, program_name))
     } else {
@@ -81,6 +97,7 @@ pub fn setup_app<'a, 'b>(
             mem,
             net,
             proc,
+            temp,
         },
     }
 }

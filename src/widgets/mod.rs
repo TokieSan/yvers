@@ -7,6 +7,7 @@ mod mem;
 mod net;
 mod proc;
 mod statusbar;
+mod temp;
 
 pub use self::battery::BatteryWidget;
 pub use self::cpu::CpuWidget;
@@ -16,3 +17,4 @@ pub use self::mem::MemWidget;
 pub use self::net::NetWidget;
 pub use self::proc::ProcWidget;
 pub use self::statusbar::Statusbar;
+pub use self::temp::TempWidget;
