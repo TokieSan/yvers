@@ -21,6 +21,10 @@ pub struct Args {
     #[structopt(short = "N", long = "net")]
     pub net: bool,
 
+    /// Show Memory widget.
+    #[structopt(short = "M", long = "mem")]
+    pub mem: bool,
+
     /// Hide processes widget.
     #[structopt(short = "P", long = "no-proc")]
     pub proc: bool,
