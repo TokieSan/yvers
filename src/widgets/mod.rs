@@ -1,6 +1,7 @@
 mod battery;
 mod block;
 mod cpu;
+mod disk;
 mod help_menu;
 mod mem;
 mod net;
@@ -9,6 +10,7 @@ mod statusbar;
 
 pub use self::battery::BatteryWidget;
 pub use self::cpu::CpuWidget;
+pub use self::disk::DiskWidget;
 pub use self::help_menu::HelpMenu;
 pub use self::mem::MemWidget;
 pub use self::net::NetWidget;

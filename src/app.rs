@@ -11,6 +11,7 @@ pub struct App<'a, 'b> {
 pub struct Widgets<'a, 'b> {
     pub battery: Option<BatteryWidget<'a>>,
     pub cpu: Option<CpuWidget<'a>>,
+    pub disk: Option<DiskWidget<'a>>,
     pub mem: Option<MemWidget<'a>>,
     pub net: Option<NetWidget<'a, 'b>>,
     pub proc: Option<ProcWidget<'a>>,
@@ -36,6 +37,12 @@ pub fn setup_app<'a, 'b>(
             args.average_cpu,
             args.per_cpu,
         ))
+    } else {
+        None
+    };
+
+    let disk = if args.disk || args.everything {
+        Some(DiskWidget::new(colorscheme))
     } else {
         None
     };
@@ -70,6 +77,7 @@ pub fn setup_app<'a, 'b>(
         widgets: Widgets {
             battery,
             cpu,
+            disk,
             mem,
             net,
             proc,

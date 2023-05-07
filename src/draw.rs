@@ -22,6 +22,9 @@ pub fn num_active_widgets(widgets: &mut Widgets) -> usize {
     if widgets.mem.is_some() {
         count += 1;
     }
+    if widgets.disk.is_some() {
+        count += 1;
+    }
     if widgets.net.is_some() {
         count += 1;
     }
@@ -62,6 +65,11 @@ pub fn draw_widgets<B: Backend>(
     let mut row_idx = 0;
     if let Some(battery) = widgets.battery.as_ref() {
         frame.render_widget(battery, chunks[row_idx]);
+        row_idx += 1;
+    }
+    
+    if let Some(disk) = widgets.disk.as_ref() {
+        frame.render_widget(disk, chunks[row_idx]);
         row_idx += 1;
     }
 

@@ -21,6 +21,10 @@ pub struct Args {
     #[structopt(short = "N", long = "net")]
     pub net: bool,
 
+    /// Show Disk widget.
+    #[structopt(short = "D", long = "disk")]
+    pub disk: bool,
+
     /// Show Memory widget.
     #[structopt(short = "M", long = "mem")]
     pub mem: bool,
