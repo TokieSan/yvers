@@ -49,7 +49,7 @@ pub fn setup_app<'a, 'b>(
     };
 
     let mem = if args.mem || args.everything {
-        Some(MemWidget::new(colorscheme, args.interval)) 
+        Some(MemWidget::new(colorscheme, args.interval))
     } else {
         None
     };
@@ -66,7 +66,7 @@ pub fn setup_app<'a, 'b>(
         None
     };
 
-    let temp =  if args.temp || args.everything {
+    let temp = if args.temp || args.everything {
         Some(TempWidget::new(colorscheme, args.fahrenheit))
     } else {
         None

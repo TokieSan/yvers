@@ -31,7 +31,7 @@ pub fn num_active_widgets(widgets: &mut Widgets) -> usize {
     if widgets.temp.is_some() {
         count += 1;
     }
-    count 
+    count
 }
 
 pub fn draw<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) {
@@ -70,7 +70,7 @@ pub fn draw_widgets<B: Backend>(
         frame.render_widget(battery, chunks[row_idx]);
         row_idx += 1;
     }
-    
+
     if let Some(disk) = widgets.disk.as_ref() {
         frame.render_widget(disk, chunks[row_idx]);
         row_idx += 1;
@@ -90,7 +90,7 @@ pub fn draw_widgets<B: Backend>(
         frame.render_widget(temp, chunks[row_idx]);
         row_idx += 1;
     }
-    
+
     if let Some(net) = widgets.net.as_ref() {
         frame.render_widget(net, chunks[row_idx]);
         row_idx += 1;
