@@ -1,7 +1,7 @@
 # yvers
 
 
-The project involves creating a new TUI system monitor and a Linux Process Manager called yvers. This is because the previous system, ytop, is outdated and has hard-coded widgets that cannot be dynamically allocated. Git is used to enable the addition or removal of widgets and users can create their own patches. Our goal is to create a customizable CLI for developers.
+Yvers is a new extensible TUI system monitor and a Linux Process Manager based on ytop with numerous improvements and the addition of the capability to dynamically add widgets created by the community.
 
 <div align="center">
 <img src="https://user-images.githubusercontent.com/78858916/236866996-54b446d4-8419-469b-b698-60baa0e73225.gif" alt="1" width="100%">
