@@ -12,7 +12,6 @@ pub struct Widgets<'a, 'b> {
     pub disk: Option<DiskWidget<'a>>,
     pub temp: Option<TempWidget<'a>>,
     pub mem: Option<MemWidget<'a>>,
-    pub battery: Option<BatteryWidget<'a>>,
     /*Widget Added for Patch*/
     /*add your patch element here*/
     pub net: Option<NetWidget<'a, 'b>>,
@@ -41,12 +40,6 @@ pub fn setup_app<'a, 'b>(
 
     let mem = if args.mem || args.everything {
         Some(MemWidget::new(colorscheme, args.interval))
-    } else {
-        None
-    };
-
-    let battery = if args.battery || args.everything {
-        Some(BatteryWidget::new(colorscheme))
     } else {
         None
     };
@@ -90,7 +83,6 @@ pub fn setup_app<'a, 'b>(
             temp,
             disk,
             mem,
-            battery,
             /* add var for patch*/
             /* add your patch here*/
             cpu,

@@ -17,10 +17,6 @@ pub struct Args {
     #[structopt(short = "M", long = "mem")]
     pub mem: bool,
 
-    /// Show battery widget.
-    #[structopt(short = "B", long = "battery")]
-    pub battery: bool,
-
     /*add your widget shortcut here*/
     /*add your patch here*/
 
