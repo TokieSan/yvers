@@ -3,19 +3,10 @@
 
 The project involves creating a new TUI system monitor and a Linux Process Manager called yvers. This is because the previous system, ytop, is outdated and has hard-coded widgets that cannot be dynamically allocated. Git is used to enable the addition or removal of widgets and users can create their own patches. Our goal is to create a customizable CLI for developers.
 
-<img src="https://user-images.githubusercontent.com/78858916/236866996-54b446d4-8419-469b-b698-60baa0e73225.gif" alt="1" width="100%">
-
-<img src="https://user-images.githubusercontent.com/78858916/236867126-9db5abfa-5d46-464c-8920-91c8433ec84c.gif" alt="2" width="100%">
-
-<img src="https://user-images.githubusercontent.com/78858916/236867211-cf36c46f-e22f-4334-915c-9299ef6a14f4.gif" alt="3" width="100%">
-
 <div align="center">
-
-
-
-<img src="./assets/demos/demo.gif" />
-<img src="./assets/screenshots/minimal.png" width="96%" />
-
+<img src="https://user-images.githubusercontent.com/78858916/236866996-54b446d4-8419-469b-b698-60baa0e73225.gif" alt="1" width="100%">
+<img src="https://user-images.githubusercontent.com/78858916/236867126-9db5abfa-5d46-464c-8920-91c8433ec84c.gif" alt="2" width="100%">
+<img src="https://user-images.githubusercontent.com/78858916/236867211-cf36c46f-e22f-4334-915c-9299ef6a14f4.gif" alt="3" width="100%">
 </div>
 
 ## Installation
