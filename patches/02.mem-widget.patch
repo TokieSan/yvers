@@ -1,0 +1,247 @@
+--- b/src/app.rs
++++ a/src/app.rs
+@@ -10,2 +10,3 @@
++    pub mem: Option<MemWidget<'a>>,
+     /*Widget Added for Patch*/
+     /*add your patch element here*/
+@@ -31,2 +32,8 @@
++    let mem = if args.mem || args.everything {
++        Some(MemWidget::new(colorscheme, args.interval))
++    } else {
++        None
++    };
++
+     /*add function for patch here.*/
+     /*add your patch here.*/
+@@ -75,2 +82,3 @@
++            mem,
+             /* add var for patch*/
+             /* add your patch here*/
+--- b/src/args.rs
++++ a/src/args.rs
+@@ -13,2 +13,6 @@
++    /// Show Memory widget.
++    #[structopt(short = "M", long = "mem")]
++    pub mem: bool,
++
+     /*add your widget shortcut here*/
+     /*add your patch here*/
+--- b/src/draw.rs
++++ a/src/draw.rs
+@@ -13,2 +13,5 @@
++    if widgets.mem.is_some() {
++        count += 1;
++    }
+     /*add your widget to count here*/
+     /*add your patch here*/
+@@ -67,2 +70,7 @@
++    if let Some(mem) = widgets.mem.as_ref() {
++        frame.render_widget(mem, chunks[row_idx]);
++        row_idx += 1;
++    }
++
+     /*add yout widget to be drawn here*/
+     /*add your patch here*/
+--- b/src/main.rs
++++ a/src/main.rs
+@@ -246,12 +246,19 @@
+                                     if let Some(cpu) = app.widgets.cpu.as_mut() {
+                                         cpu.scale_in();
+                                     }
++
++                                    if let Some(mem) = app.widgets.mem.as_mut() {
++                                        mem.scale_in();
++                                    }
+                                     graphs_modified = true;
+                                 },
+                                 KeyCode::Char('l') => {
+                                     if let Some(cpu) = app.widgets.cpu.as_mut() {
+                                         cpu.scale_out();
+                                     }
++                                    if let Some(mem) = app.widgets.mem.as_mut() {
++                                        mem.scale_out();
++                                    }
+                                     graphs_modified = true;
+                                 },
+                                 KeyCode::Esc => {
+--- b/src/update.rs
++++ a/src/update.rs
+@@ -10,2 +10,6 @@
++    if let Some(mem) = widgets.mem.as_mut() {
++        widgets_to_update.push(mem);
++    }
++
+     /*add yout update function here*/
+     /*add yout patch here*/
+--- /dev/null
++++ a/src/widgets/mem.rs
+@@ -0,0 +1,159 @@
++use num_rational::Ratio;
++use psutil::memory;
++use size::Size;
++use tui::buffer::Buffer;
++use tui::layout::Rect;
++use tui::symbols::Marker;
++use tui::widgets::{Axis, Chart, Dataset, GraphType, Widget};
++
++use crate::colorscheme::Colorscheme;
++use crate::update::UpdatableWidget;
++use crate::widgets::block;
++
++const HORIZONTAL_SCALE_DELTA: u64 = 25;
++
++#[derive(Default)]
++struct MemData {
++    total: u64,
++    used: u64,
++    percents: Vec<(f64, f64)>,
++}
++
++pub struct MemWidget<'a> {
++    title: String,
++    update_interval: Ratio<u64>,
++    colorscheme: &'a Colorscheme,
++
++    horizontal_scale: u64,
++
++    update_count: u64,
++
++    main: MemData,
++    swap: Option<MemData>,
++}
++
++impl MemWidget<'_> {
++    pub fn new(colorscheme: &Colorscheme, update_interval: Ratio<u64>) -> MemWidget {
++        let update_count = 0;
++
++        let mut main = MemData::default();
++        main.percents.push((update_count as f64, 0.0));
++
++        MemWidget {
++            title: " Memory Usage ".to_string(),
++            update_interval,
++            colorscheme,
++
++            horizontal_scale: 100,
++
++            update_count,
++
++            main,
++            swap: None,
++        }
++    }
++
++    pub fn scale_in(&mut self) {
++        if self.horizontal_scale > HORIZONTAL_SCALE_DELTA {
++            self.horizontal_scale -= HORIZONTAL_SCALE_DELTA;
++        }
++    }
++
++    pub fn scale_out(&mut self) {
++        self.horizontal_scale += HORIZONTAL_SCALE_DELTA;
++    }
++}
++
++impl UpdatableWidget for MemWidget<'_> {
++    fn update(&mut self) {
++        self.update_count += 1;
++
++        let main = memory::virtual_memory().unwrap();
++        let swap = memory::swap_memory().unwrap();
++
++        self.main.total = main.total();
++        self.main.used = main.used();
++        self.main
++            .percents
++            .push((self.update_count as f64, main.percent().into()));
++
++        if swap.total() == 0 {
++            self.swap = None;
++        } else {
++            if self.swap.is_none() {
++                self.swap = Some(MemData::default());
++                self.swap
++                    .as_mut()
++                    .unwrap()
++                    .percents
++                    .push((self.update_count as f64 - 1.0, 0.0));
++            }
++            self.swap.as_mut().unwrap().total = swap.total();
++            self.swap.as_mut().unwrap().used = swap.used();
++            self.swap
++                .as_mut()
++                .unwrap()
++                .percents
++                .push((self.update_count as f64, swap.percent().into()));
++        }
++    }
++
++    fn get_update_interval(&self) -> Ratio<u64> {
++        self.update_interval
++    }
++}
++
++impl Widget for &MemWidget<'_> {
++    fn render(self, area: Rect, buf: &mut Buffer) {
++        let mut datasets = vec![Dataset::default()
++            .marker(Marker::Braille)
++            .graph_type(GraphType::Line)
++            .style(self.colorscheme.mem_main)
++            .data(&self.main.percents)];
++        if let Some(swap) = &self.swap {
++            datasets.push(
++                Dataset::default()
++                    .marker(Marker::Braille)
++                    .graph_type(GraphType::Line)
++                    .style(self.colorscheme.mem_swap)
++                    .data(&swap.percents),
++            )
++        }
++
++        Chart::<String, String>::default()
++            .block(block::new(self.colorscheme, &self.title))
++            .x_axis(Axis::default().bounds([
++                self.update_count as f64 - self.horizontal_scale as f64,
++                self.update_count as f64 + 1.0,
++            ]))
++            .y_axis(Axis::default().bounds([0.0, 100.0]))
++            .datasets(&datasets)
++            .render(area, buf);
++
++        buf.set_string(
++            area.x + 3,
++            area.y + 2,
++            format!(
++                "Main {:3.0}% {}/{}",
++                self.main.percents.last().unwrap().1,
++                Size::Bytes(self.main.used),
++                Size::Bytes(self.main.total),
++            ),
++            self.colorscheme.mem_main,
++        );
++
++        if let Some(swap) = &self.swap {
++            buf.set_string(
++                area.x + 3,
++                area.y + 3,
++                format!(
++                    "Swap {:3.0}% {}/{}",
++                    swap.percents.last().unwrap().1,
++                    Size::Bytes(swap.used),
++                    Size::Bytes(swap.total),
++                ),
++                self.colorscheme.mem_swap,
++            );
++        }
++    }
++}
+--- b/src/widgets/mod.rs
++++ a/src/widgets/mod.rs
+@@ -6,2 +6,3 @@
++mod mem;
+ /*Add your widget name here*/
+ /*Add your patch here*/
+@@ -18,2 +18,3 @@
++pub use self::mem::MemWidget;
+ /*Add your widget function prototype here*/
+ /*Add your patch here*/
