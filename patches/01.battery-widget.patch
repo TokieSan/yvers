@@ -1,0 +1,173 @@
+--- b/src/app.rs
++++ a/src/app.rs
+@@ -9,2 +9,3 @@
++    pub battery: Option<BatteryWidget<'a>>,
+     /*Widget Added for Patch*/
+     /*add your patch element here*/
+@@ -26,2 +27,8 @@
++    let battery = if args.battery || args.everything {
++        Some(BatteryWidget::new(colorscheme))
++    } else {
++        None
++    };
++
+     /*add function for patch here.*/
+     /*add your patch here.*/
+@@ -83,2 +90,3 @@
++            battery,
+             /* add var for patch*/
+             /* add your patch here*/
+--- b/src/args.rs
++++ a/src/args.rs
+@@ -17,2 +17,6 @@
++    /// Show battery widget.
++    #[structopt(short = "B", long = "battery")]
++    pub battery: bool,
++
+     /*add your widget shortcut here*/
+     /*add your patch here*/
+--- b/src/draw.rs
++++ a/src/draw.rs
+@@ -19,2 +19,5 @@
++    if widgets.battery.is_some() {
++        count += 1;
++    }
+     /*add your widget to count here*/
+     /*add your patch here*/
+@@ -65,2 +68,7 @@
++    if let Some(battery) = widgets.battery.as_ref() {
++        frame.render_widget(battery, chunks[row_idx]);
++        row_idx += 1;
++    }
++
+     /*add yout widget to be drawn here*/
+     /*add your patch here*/
+--- b/src/update.rs
++++ a/src/update.rs
+@@ -10,2 +10,6 @@
++    if let Some(battery) = widgets.battery.as_mut() {
++        widgets_to_update.push(battery);
++    }
++
+     /*add yout update function here*/
+     /*add yout patch here*/
+--- /dev/null
++++ a/src/widgets/battery.rs
+@@ -0,0 +1,107 @@
++use std::collections::HashMap;
++
++use battery::Manager;
++use num_rational::Ratio;
++use tui::buffer::Buffer;
++use tui::layout::Rect;
++use tui::symbols::Marker;
++use tui::widgets::{Axis, Chart, Dataset, GraphType, Widget};
++
++use crate::colorscheme::Colorscheme;
++use crate::update::UpdatableWidget;
++use crate::widgets::block;
++
++pub struct BatteryWidget<'a> {
++    title: String,
++    update_interval: Ratio<u64>,
++    colorscheme: &'a Colorscheme,
++
++    horizontal_scale: u64,
++
++    update_count: u64,
++    battery_data: HashMap<String, Vec<(f64, f64)>>,
++    manager: Manager,
++}
++
++impl BatteryWidget<'_> {
++    pub fn new(colorscheme: &Colorscheme) -> BatteryWidget {
++        BatteryWidget {
++            title: " Batteries ".to_string(),
++            update_interval: Ratio::from_integer(60),
++            colorscheme,
++
++            horizontal_scale: 50,
++
++            update_count: 0,
++            battery_data: HashMap::new(),
++            manager: Manager::new().unwrap(),
++        }
++    }
++}
++
++impl UpdatableWidget for BatteryWidget<'_> {
++    fn update(&mut self) {
++        self.update_count += 1;
++        let mut current_batteries = Vec::new();
++
++        for battery in self.manager.batteries().unwrap() {
++            let battery = battery.unwrap();
++            let model = battery.model().unwrap();
++            self.battery_data
++                .entry(model.to_string())
++                .or_default()
++                .push((
++                    self.update_count as f64,
++                    battery.state_of_charge().value as f64 * 100.0,
++                ));
++            current_batteries.push(model.to_string());
++        }
++
++        let models: Vec<String> = self.battery_data.keys().cloned().collect();
++        for model in models {
++            if !current_batteries.contains(&model) {
++                self.battery_data.remove(&model);
++            }
++        }
++    }
++
++    fn get_update_interval(&self) -> Ratio<u64> {
++        self.update_interval
++    }
++}
++
++impl Widget for &BatteryWidget<'_> {
++    fn render(self, area: Rect, buf: &mut Buffer) {
++        let datasets: Vec<Dataset> = self
++            .battery_data
++            .values()
++            .enumerate()
++            .map(|(i, data)| {
++                Dataset::default()
++                    .marker(Marker::Braille)
++                    .style(self.colorscheme.battery_lines[i % self.colorscheme.battery_lines.len()])
++                    .graph_type(GraphType::Line)
++                    .data(data)
++            })
++            .collect();
++
++        Chart::<String, String>::default()
++            .block(block::new(self.colorscheme, &self.title))
++            .x_axis(Axis::default().bounds([
++                self.update_count as f64 - self.horizontal_scale as f64,
++                self.update_count as f64 + 1.0,
++            ]))
++            .y_axis(Axis::default().bounds([0.0, 100.0]))
++            .datasets(&datasets)
++            .render(area, buf);
++
++        for (i, data) in self.battery_data.iter().enumerate() {
++            buf.set_string(
++                area.x + 3,
++                area.y + 2 + i as u16,
++                format!("{} {:3.0}%", data.0, data.1.last().unwrap().1),
++                self.colorscheme.battery_lines[i % self.colorscheme.battery_lines.len()],
++            );
++        }
++    }
++}
+--- b/src/widgets/mod.rs
++++ a/src/widgets/mod.rs
+@@ -6,2 +6,3 @@
++mod battery;
+ /*Add your widget name here*/
+ /*Add your patch here*/
+@@ -18,2 +18,3 @@
++pub use self::battery::BatteryWidget;
+ /*Add your widget function prototype here*/
+ /*Add your patch here*/
