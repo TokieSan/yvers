@@ -9,13 +9,15 @@ pub struct App<'a, 'b> {
 }
 
 pub struct Widgets<'a, 'b> {
-    pub battery: Option<BatteryWidget<'a>>,
-    pub cpu: Option<CpuWidget<'a>>,
     pub disk: Option<DiskWidget<'a>>,
+    pub temp: Option<TempWidget<'a>>,
     pub mem: Option<MemWidget<'a>>,
+    pub battery: Option<BatteryWidget<'a>>,
+    /*Widget Added for Patch*/
+    /*add your patch element here*/
     pub net: Option<NetWidget<'a, 'b>>,
     pub proc: Option<ProcWidget<'a>>,
-    pub temp: Option<TempWidget<'a>>,
+    pub cpu: Option<CpuWidget<'a>>,
 }
 
 pub fn setup_app<'a, 'b>(
@@ -25,11 +27,32 @@ pub fn setup_app<'a, 'b>(
 ) -> App<'a, 'b> {
     let help_menu = HelpMenu::new(colorscheme);
 
+    let disk = if args.disk || args.everything {
+        Some(DiskWidget::new(colorscheme))
+    } else {
+        None
+    };
+
+    let temp = if args.temp || args.everything {
+        Some(TempWidget::new(colorscheme, args.fahrenheit))
+    } else {
+        None
+    };
+
+    let mem = if args.mem || args.everything {
+        Some(MemWidget::new(colorscheme, args.interval))
+    } else {
+        None
+    };
+
     let battery = if args.battery || args.everything {
         Some(BatteryWidget::new(colorscheme))
     } else {
         None
     };
+
+    /*add function for patch here.*/
+    /*add your patch here.*/
 
     let cpu = if args.cpu || args.everything {
         Some(CpuWidget::new(
@@ -38,18 +61,6 @@ pub fn setup_app<'a, 'b>(
             args.average_cpu,
             args.per_cpu,
         ))
-    } else {
-        None
-    };
-
-    let disk = if args.disk || args.everything {
-        Some(DiskWidget::new(colorscheme))
-    } else {
-        None
-    };
-
-    let mem = if args.mem || args.everything {
-        Some(MemWidget::new(colorscheme, args.interval))
     } else {
         None
     };
@@ -66,12 +77,6 @@ pub fn setup_app<'a, 'b>(
         None
     };
 
-    let temp = if args.temp || args.everything {
-        Some(TempWidget::new(colorscheme, args.fahrenheit))
-    } else {
-        None
-    };
-
     let statusbar = if args.statusbar || args.everything {
         Some(Statusbar::new(colorscheme, program_name))
     } else {
@@ -82,13 +87,15 @@ pub fn setup_app<'a, 'b>(
         help_menu,
         statusbar,
         widgets: Widgets {
-            battery,
-            cpu,
+            temp,
             disk,
             mem,
+            battery,
+            /* add var for patch*/
+            /* add your patch here*/
+            cpu,
             net,
             proc,
-            temp,
         },
     }
 }

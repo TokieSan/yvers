@@ -5,21 +5,9 @@ use crate::colorscheme::Colorschemes;
 
 #[derive(StructOpt)]
 pub struct Args {
-    /// Show average CPU in the CPU widget.
-    #[structopt(short = "a", long = "average-cpu")]
-    pub average_cpu: bool,
-
-    /// Show battery widget.
-    #[structopt(short = "B", long = "battery")]
-    pub battery: bool,
-
-    /// Show CPU widget.
-    #[structopt(short = "C", long = "cpu")]
-    pub cpu: bool,
-
-    /// Show Network widget.
-    #[structopt(short = "N", long = "net")]
-    pub net: bool,
+    /// Show Temperature widget.
+    #[structopt(short = "T", long = "temp")]
+    pub temp: bool,
 
     /// Show Disk widget.
     #[structopt(short = "D", long = "disk")]
@@ -29,6 +17,25 @@ pub struct Args {
     #[structopt(short = "M", long = "mem")]
     pub mem: bool,
 
+    /// Show battery widget.
+    #[structopt(short = "B", long = "battery")]
+    pub battery: bool,
+
+    /*add your widget shortcut here*/
+    /*add your patch here*/
+
+    /// Show average CPU in the CPU widget.
+    #[structopt(short = "a", long = "average-cpu")]
+    pub average_cpu: bool,
+
+    /// Show CPU widget.
+    #[structopt(short = "C", long = "cpu")]
+    pub cpu: bool,
+
+    /// Show Network widget.
+    #[structopt(short = "N", long = "net")]
+    pub net: bool,
+
     /// Hide processes widget.
     #[structopt(short = "P", long = "no-proc")]
     pub proc: bool,
@@ -36,10 +43,6 @@ pub struct Args {
     /// Show all widgets.
     #[structopt(short = "E", long = "everything")]
     pub everything: bool,
-
-    /// Show Temperature widget.
-    #[structopt(short = "T", long = "temp")]
-    pub temp: bool,
 
     /// Set a colorscheme.
     #[structopt(

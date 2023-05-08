@@ -10,25 +10,27 @@ use crate::app::{App, Widgets};
 
 pub fn num_active_widgets(widgets: &mut Widgets) -> usize {
     let mut count = 0;
+    if widgets.temp.is_some() {
+        count += 1;
+    }
+    if widgets.disk.is_some() {
+        count += 1;
+    }
+    if widgets.mem.is_some() {
+        count += 1;
+    }
     if widgets.battery.is_some() {
         count += 1;
     }
+    /*add your widget to count here*/
+    /*add your patch here*/
     if widgets.proc.is_some() {
         count += 1;
     }
     if widgets.cpu.is_some() {
         count += 1;
     }
-    if widgets.mem.is_some() {
-        count += 1;
-    }
-    if widgets.disk.is_some() {
-        count += 1;
-    }
     if widgets.net.is_some() {
-        count += 1;
-    }
-    if widgets.temp.is_some() {
         count += 1;
     }
     count
@@ -66,18 +68,13 @@ pub fn draw_widgets<B: Backend>(
         .split(area);
 
     let mut row_idx = 0;
-    if let Some(battery) = widgets.battery.as_ref() {
-        frame.render_widget(battery, chunks[row_idx]);
-        row_idx += 1;
-    }
-
     if let Some(disk) = widgets.disk.as_ref() {
         frame.render_widget(disk, chunks[row_idx]);
         row_idx += 1;
     }
 
-    if let Some(cpu) = widgets.cpu.as_ref() {
-        frame.render_widget(cpu, chunks[row_idx]);
+    if let Some(temp) = widgets.temp.as_ref() {
+        frame.render_widget(temp, chunks[row_idx]);
         row_idx += 1;
     }
 
@@ -86,8 +83,16 @@ pub fn draw_widgets<B: Backend>(
         row_idx += 1;
     }
 
-    if let Some(temp) = widgets.temp.as_ref() {
-        frame.render_widget(temp, chunks[row_idx]);
+    if let Some(battery) = widgets.battery.as_ref() {
+        frame.render_widget(battery, chunks[row_idx]);
+        row_idx += 1;
+    }
+
+    /*add yout widget to be drawn here*/
+    /*add your patch here*/
+
+    if let Some(cpu) = widgets.cpu.as_ref() {
+        frame.render_widget(cpu, chunks[row_idx]);
         row_idx += 1;
     }
 
