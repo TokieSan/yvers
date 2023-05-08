@@ -10,10 +10,6 @@ pub trait UpdatableWidget {
 pub fn update_widgets(widgets: &mut Widgets, seconds: Ratio<u64>) {
     let mut widgets_to_update: Vec<&mut (dyn UpdatableWidget)> = vec![];
 
-    if let Some(temp) = widgets.temp.as_mut() {
-        widgets_to_update.push(temp);
-    }
-
     /*add yout update function here*/
     /*add yout patch here*/
 

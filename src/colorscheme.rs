@@ -49,8 +49,6 @@ struct ColorschemeRaw {
     net_bars: i64,
 
     proc_cursor: i64,
-    temp_low: i64,
-    temp_high: i64,
 }
 
 pub struct Colorscheme {
@@ -70,8 +68,6 @@ pub struct Colorscheme {
     pub net_bars: Style,
 
     pub proc_cursor: Color,
-    pub temp_low: Style,
-    pub temp_high: Style,
 }
 
 impl From<ColorschemeRaw> for Colorscheme {
@@ -102,9 +98,6 @@ impl From<ColorschemeRaw> for Colorscheme {
             net_bars: Style::default().fg(convert_color(raw.net_bars)),
 
             proc_cursor: convert_color(raw.proc_cursor),
-
-            temp_low: Style::default().fg(convert_color(raw.temp_low)),
-            temp_high: Style::default().fg(convert_color(raw.temp_high)),
         }
     }
 }
