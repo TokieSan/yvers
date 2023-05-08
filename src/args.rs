@@ -9,10 +9,8 @@ pub struct Args {
     #[structopt(short = "T", long = "temp")]
     pub temp: bool,
 
-
     /*add your widget shortcut here*/
     /*add your patch here*/
-
     /// Show average CPU in the CPU widget.
     #[structopt(short = "a", long = "average-cpu")]
     pub average_cpu: bool,
