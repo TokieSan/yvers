@@ -22,10 +22,6 @@ pub fn update_widgets(widgets: &mut Widgets, seconds: Ratio<u64>) {
         widgets_to_update.push(mem);
     }
 
-    if let Some(battery) = widgets.battery.as_mut() {
-        widgets_to_update.push(battery);
-    }
-
     /*add yout update function here*/
     /*add yout patch here*/
 

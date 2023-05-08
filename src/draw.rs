@@ -19,9 +19,6 @@ pub fn num_active_widgets(widgets: &mut Widgets) -> usize {
     if widgets.mem.is_some() {
         count += 1;
     }
-    if widgets.battery.is_some() {
-        count += 1;
-    }
     /*add your widget to count here*/
     /*add your patch here*/
     if widgets.proc.is_some() {
@@ -80,11 +77,6 @@ pub fn draw_widgets<B: Backend>(
 
     if let Some(mem) = widgets.mem.as_ref() {
         frame.render_widget(mem, chunks[row_idx]);
-        row_idx += 1;
-    }
-
-    if let Some(battery) = widgets.battery.as_ref() {
-        frame.render_widget(battery, chunks[row_idx]);
         row_idx += 1;
     }
 
