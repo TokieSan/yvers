@@ -5,10 +5,6 @@ use crate::colorscheme::Colorschemes;
 
 #[derive(StructOpt)]
 pub struct Args {
-    /// Show Temperature widget.
-    #[structopt(short = "T", long = "temp")]
-    pub temp: bool,
-
     /*add your widget shortcut here*/
     /*add your patch here*/
     /// Show average CPU in the CPU widget.

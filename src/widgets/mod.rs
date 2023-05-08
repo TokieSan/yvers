@@ -1,4 +1,3 @@
-mod temp;
 mod net;
 /*Add your widget name here*/
 /*Add your patch here*/
@@ -8,7 +7,6 @@ mod block;
 mod cpu;
 mod help_menu;
 
-pub use self::temp::TempWidget;
 /*Add your widget function prototype here*/
 /*Add your patch here*/
 pub use self::help_menu::HelpMenu;

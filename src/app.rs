@@ -9,7 +9,6 @@ pub struct App<'a, 'b> {
 }
 
 pub struct Widgets<'a, 'b> {
-    pub temp: Option<TempWidget<'a>>,
     /*Widget Added for Patch*/
     /*add your patch element here*/
     pub net: Option<NetWidget<'a, 'b>>,
@@ -23,12 +22,6 @@ pub fn setup_app<'a, 'b>(
     program_name: &str,
 ) -> App<'a, 'b> {
     let help_menu = HelpMenu::new(colorscheme);
-
-    let temp = if args.temp || args.everything {
-        Some(TempWidget::new(colorscheme, args.fahrenheit))
-    } else {
-        None
-    };
 
     /*add function for patch here.*/
     /*add your patch here.*/
@@ -66,7 +59,6 @@ pub fn setup_app<'a, 'b>(
         help_menu,
         statusbar,
         widgets: Widgets {
-            temp,
             /* add var for patch*/
             /* add your patch here*/
             cpu,
