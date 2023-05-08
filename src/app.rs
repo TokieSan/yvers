@@ -9,7 +9,6 @@ pub struct App<'a, 'b> {
 }
 
 pub struct Widgets<'a, 'b> {
-    pub disk: Option<DiskWidget<'a>>,
     pub temp: Option<TempWidget<'a>>,
     /*Widget Added for Patch*/
     /*add your patch element here*/
@@ -24,12 +23,6 @@ pub fn setup_app<'a, 'b>(
     program_name: &str,
 ) -> App<'a, 'b> {
     let help_menu = HelpMenu::new(colorscheme);
-
-    let disk = if args.disk || args.everything {
-        Some(DiskWidget::new(colorscheme))
-    } else {
-        None
-    };
 
     let temp = if args.temp || args.everything {
         Some(TempWidget::new(colorscheme, args.fahrenheit))
@@ -74,7 +67,6 @@ pub fn setup_app<'a, 'b>(
         statusbar,
         widgets: Widgets {
             temp,
-            disk,
             /* add var for patch*/
             /* add your patch here*/
             cpu,

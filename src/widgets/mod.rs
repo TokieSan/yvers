@@ -1,4 +1,3 @@
-mod disk;
 mod temp;
 mod net;
 /*Add your widget name here*/
@@ -9,7 +8,6 @@ mod block;
 mod cpu;
 mod help_menu;
 
-pub use self::disk::DiskWidget;
 pub use self::temp::TempWidget;
 /*Add your widget function prototype here*/
 /*Add your patch here*/

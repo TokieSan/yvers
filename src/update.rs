@@ -14,10 +14,6 @@ pub fn update_widgets(widgets: &mut Widgets, seconds: Ratio<u64>) {
         widgets_to_update.push(temp);
     }
 
-    if let Some(disk) = widgets.disk.as_mut() {
-        widgets_to_update.push(disk);
-    }
-
     /*add yout update function here*/
     /*add yout patch here*/
 

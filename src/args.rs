@@ -9,9 +9,6 @@ pub struct Args {
     #[structopt(short = "T", long = "temp")]
     pub temp: bool,
 
-    /// Show Disk widget.
-    #[structopt(short = "D", long = "disk")]
-    pub disk: bool,
 
     /*add your widget shortcut here*/
     /*add your patch here*/
