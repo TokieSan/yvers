@@ -11,7 +11,6 @@ pub struct App<'a, 'b> {
 pub struct Widgets<'a, 'b> {
     pub disk: Option<DiskWidget<'a>>,
     pub temp: Option<TempWidget<'a>>,
-    pub mem: Option<MemWidget<'a>>,
     /*Widget Added for Patch*/
     /*add your patch element here*/
     pub net: Option<NetWidget<'a, 'b>>,
@@ -34,12 +33,6 @@ pub fn setup_app<'a, 'b>(
 
     let temp = if args.temp || args.everything {
         Some(TempWidget::new(colorscheme, args.fahrenheit))
-    } else {
-        None
-    };
-
-    let mem = if args.mem || args.everything {
-        Some(MemWidget::new(colorscheme, args.interval))
     } else {
         None
     };
@@ -82,7 +75,6 @@ pub fn setup_app<'a, 'b>(
         widgets: Widgets {
             temp,
             disk,
-            mem,
             /* add var for patch*/
             /* add your patch here*/
             cpu,
