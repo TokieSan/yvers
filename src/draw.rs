@@ -10,9 +10,6 @@ use crate::app::{App, Widgets};
 
 pub fn num_active_widgets(widgets: &mut Widgets) -> usize {
     let mut count = 0;
-    if widgets.temp.is_some() {
-        count += 1;
-    }
     /*add your widget to count here*/
     /*add your patch here*/
     if widgets.proc.is_some() {
@@ -59,11 +56,6 @@ pub fn draw_widgets<B: Backend>(
         .split(area);
 
     let mut row_idx = 0;
-
-    if let Some(temp) = widgets.temp.as_ref() {
-        frame.render_widget(temp, chunks[row_idx]);
-        row_idx += 1;
-    }
 
     /*add yout widget to be drawn here*/
     /*add your patch here*/
