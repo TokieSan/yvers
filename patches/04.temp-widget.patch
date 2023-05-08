@@ -1,0 +1,215 @@
+--- b/src/app.rs
++++ a/src/app.rs
+@@ -9,2 +9,3 @@
++    pub temp: Option<TempWidget<'a>>,
+     /*Widget Added for Patch*/
+     /*add your patch element here*/
+@@ -23,2 +24,8 @@
++    let temp = if args.temp || args.everything {
++        Some(TempWidget::new(colorscheme, args.fahrenheit))
++    } else {
++        None
++    };
++
+     /*add function for patch here.*/
+     /*add your patch here.*/
+@@ -59,2 +66,3 @@
++            temp,
+             /* add var for patch*/
+             /* add your patch here*/
+--- b/src/args.rs
++++ a/src/args.rs
+@@ -5,2 +5,6 @@
++    /// Show Temperature widget.
++    #[structopt(short = "T", long = "temp")]
++    pub temp: bool,
++
+     /*add your widget shortcut here*/
+     /*add your patch here*/
+--- b/src/colorscheme.rs
++++ a/src/colorscheme.rs
+@@ -49,6 +49,8 @@
+     net_bars: i64,
+ 
+     proc_cursor: i64,
++    temp_low: i64,
++    temp_high: i64,
+ }
+ 
+ pub struct Colorscheme {
+@@ -68,6 +70,8 @@
+     pub net_bars: Style,
+ 
+     pub proc_cursor: Color,
++    pub temp_low: Style,
++    pub temp_high: Style,
+ }
+ 
+ impl From<ColorschemeRaw> for Colorscheme {
+@@ -98,6 +102,9 @@
+             net_bars: Style::default().fg(convert_color(raw.net_bars)),
+ 
+             proc_cursor: convert_color(raw.proc_cursor),
++
++            temp_low: Style::default().fg(convert_color(raw.temp_low)),
++            temp_high: Style::default().fg(convert_color(raw.temp_high)),
+         }
+     }
+ }
+--- b/src/draw.rs
++++ a/src/draw.rs
+@@ -10,2 +10,5 @@
++    if widgets.temp.is_some() {
++        count += 1;
++    }
+     /*add your widget to count here*/
+     /*add your patch here*/
+@@ -57,2 +60,7 @@
++    if let Some(temp) = widgets.temp.as_ref() {
++        frame.render_widget(temp, chunks[row_idx]);
++        row_idx += 1;
++    }
++
+     /*add yout widget to be drawn here*/
+     /*add your patch here*/
+--- b/src/update.rs
++++ a/src/update.rs
+@@ -10,2 +10,6 @@
++    if let Some(temp) = widgets.temp.as_mut() {
++        widgets_to_update.push(temp);
++    }
++
+     /*add yout update function here*/
+     /*add yout patch here*/
+--- b/src/widgets/mod.rs
++++ a/src/widgets/mod.rs
+@@ -3,2 +3,3 @@
++mod temp;
+ /*Add your widget name here*/
+ /*Add your patch here*/
+@@ -7,2 +8,3 @@
++pub use self::temp::TempWidget;
+ /*Add your widget function prototype here*/
+ /*Add your patch here*/
+--- /dev/null
++++ a/src/widgets/temp.rs
+@@ -0,0 +1,119 @@
++use num_rational::Ratio;
++use tui::buffer::Buffer;
++use tui::layout::Rect;
++use tui::widgets::Widget;
++
++use crate::colorscheme::Colorscheme;
++use crate::update::UpdatableWidget;
++use crate::widgets::block;
++
++#[cfg(target_os = "macos")]
++use sysinfo::{ComponentExt, System, SystemExt};
++
++#[cfg(target_os = "linux")]
++use psutil::sensors;
++
++pub struct TempWidget<'a> {
++    title: String,
++    update_interval: Ratio<u64>,
++    colorscheme: &'a Colorscheme,
++
++    fahrenheit: bool,
++    temp_threshold: f64,
++
++    temp_data: Vec<(String, f64)>,
++}
++
++impl TempWidget<'_> {
++    pub fn new(colorscheme: &Colorscheme, fahrenheit: bool) -> TempWidget {
++        TempWidget {
++            title: " Temperatures ".to_string(),
++            update_interval: Ratio::from_integer(5),
++            colorscheme,
++
++            fahrenheit,
++            temp_threshold: 80.0,
++            temp_data: Vec::new(),
++        }
++    }
++}
++
++impl UpdatableWidget for TempWidget<'_> {
++    #[cfg(target_os = "linux")]
++    fn update(&mut self) {
++        self.temp_data = sensors::temperatures()
++            .into_iter()
++            .filter_map(|sensor| sensor.ok())
++            .map(|sensor| {
++                (
++                    match sensor.label() {
++                        Some(label) => format!("{}-{}", sensor.unit(), label),
++                        None => sensor.unit().to_string(),
++                    },
++                    if self.fahrenheit {
++                        sensor.current().fahrenheit()
++                    } else {
++                        sensor.current().celsius()
++                    },
++                )
++            })
++            .filter(|data| data.1 > 0.0)
++            .collect()
++    }
++
++    #[cfg(target_os = "macos")]
++    fn update(&mut self) {
++        self.temp_data = Vec::new();
++
++        let sys = System::new_all();
++        let sensor_data = sys.get_components();
++
++        for component in sensor_data {
++            let num: f64 = component.get_temperature() as f64;
++            self.temp_data
++                .push((component.get_label().to_string(), num));
++        }
++
++        self.temp_data
++            .sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
++    }
++
++    fn get_update_interval(&self) -> Ratio<u64> {
++        self.update_interval
++    }
++}
++
++impl<'a> Widget for &TempWidget<'a> {
++    fn render(self, area: Rect, buf: &mut Buffer) {
++        block::new(self.colorscheme, &self.title).render(area, buf);
++
++        if area.height < 2 {
++            return;
++        }
++
++        let inner = Rect {
++            x: area.x + 1,
++            y: area.y + 1,
++            width: area.width - 2,
++            height: area.height - 2,
++        };
++
++        for (i, (label, data)) in self.temp_data.iter().enumerate() {
++            if i >= inner.height as usize {
++                break;
++            }
++            let y = inner.y + i as u16;
++            buf.set_string(inner.x, y, label, self.colorscheme.text);
++            buf.set_string(
++                inner.right() - 5,
++                y,
++                format!("{:3.0}°{}", data, if self.fahrenheit { "F" } else { "C" },),
++                if data < &self.temp_threshold {
++                    self.colorscheme.temp_low
++                } else {
++                    self.colorscheme.temp_high
++                },
++            );
++        }
++    }
++}
