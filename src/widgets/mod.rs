@@ -1,7 +1,6 @@
 mod disk;
 mod temp;
 mod net;
-mod mem;
 /*Add your widget name here*/
 /*Add your patch here*/
 mod proc;
@@ -12,7 +11,6 @@ mod help_menu;
 
 pub use self::disk::DiskWidget;
 pub use self::temp::TempWidget;
-pub use self::mem::MemWidget;
 /*Add your widget function prototype here*/
 /*Add your patch here*/
 pub use self::help_menu::HelpMenu;

@@ -246,18 +246,11 @@ fn main() {
                                     if let Some(cpu) = app.widgets.cpu.as_mut() {
                                         cpu.scale_in();
                                     }
-
-                                    if let Some(mem) = app.widgets.mem.as_mut() {
-                                        mem.scale_in();
-                                    }
                                     graphs_modified = true;
                                 },
                                 KeyCode::Char('l') => {
                                     if let Some(cpu) = app.widgets.cpu.as_mut() {
                                         cpu.scale_out();
-                                    }
-                                    if let Some(mem) = app.widgets.mem.as_mut() {
-                                        mem.scale_out();
                                     }
                                     graphs_modified = true;
                                 },

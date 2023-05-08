@@ -18,10 +18,6 @@ pub fn update_widgets(widgets: &mut Widgets, seconds: Ratio<u64>) {
         widgets_to_update.push(disk);
     }
 
-    if let Some(mem) = widgets.mem.as_mut() {
-        widgets_to_update.push(mem);
-    }
-
     /*add yout update function here*/
     /*add yout patch here*/
 

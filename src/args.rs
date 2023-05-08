@@ -13,10 +13,6 @@ pub struct Args {
     #[structopt(short = "D", long = "disk")]
     pub disk: bool,
 
-    /// Show Memory widget.
-    #[structopt(short = "M", long = "mem")]
-    pub mem: bool,
-
     /*add your widget shortcut here*/
     /*add your patch here*/
 
