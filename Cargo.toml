@@ -1,6 +1,6 @@
 [package]
 name = "yvers"
-version = "0.0.2"
+version = "0.0.5"
 authors = ["Ahmed Eltokhy <eltokhy@aucegypt.edu>"]
 license = "MIT"
 description = "An extensible system monitor written in Rust"
